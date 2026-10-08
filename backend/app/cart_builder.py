@@ -5,7 +5,7 @@
 """
 import re
 
-from . import db
+from . import db, recommender
 from .rule_engine import BLOCK, PASS, UNVERIFIED, judge
 
 DEFAULT_COUNT = 5
@@ -157,7 +157,8 @@ def to_item(product: dict, verdict: dict) -> dict:
 
 
 def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[str] | None = None,
-           cheap_first: bool = False, min_score: int = 1, situation: dict | None = None) -> tuple[list[dict], dict]:
+           cheap_first: bool = False, min_score: int = 1, situation: dict | None = None,
+           user_id: int | None = None) -> tuple[list[dict], dict]:
     """요청에 맞는 상품을 Rule Engine으로 걸러 PASS 후보만 순위대로 돌려준다.
 
     순서: 관련도(요청 낱말 일치) → 상황 우선 낱말 → 후기 수 → 판매량 순위. 가격은 순서에 쓰지 않는다
@@ -170,7 +171,8 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
     avoid_words = (situation or {}).get("avoid", [])
     stats = {"matched": 0, "situation_excluded": 0, PASS: 0, BLOCK: 0, UNVERIFIED: 0}
     ranked = []
-    for product in db.list_products():
+    products = db.list_products()
+    for product in products:
         score = _score(product, terms)
         if (terms and score < min_score) or product["id"] in exclude_ids:
             continue
@@ -195,7 +197,10 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
         # 바로 담을 수 있는 상품(옵션 없음·실제 컬리 상품)을 같은 조건이면 먼저 둔다
         ranked.sort(key=lambda pair: (-pair[0], not pair[1]["preferred"], pair[1]["needs_option"],
                                       pair[1]["source"] == "mock", *_popularity(pair[1])))
-    return [item for _, item in ranked], stats
+    items = [item for _, item in ranked]
+    if user_id is not None and not cheap_first:
+        items = recommender.personalize(items, products, db.list_interactions(), user_id)
+    return items, stats
 
 
 def missing_terms(terms: list[str]) -> list[str]:

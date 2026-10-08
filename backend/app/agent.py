@@ -186,7 +186,8 @@ def build_cart(state: CartState) -> dict:
             notes.append(f"{prefix}'{', '.join(missing)}'에 맞는 상품은 지금 상품 DB에 없어 나머지 조건으로 골랐어요.")
         budget = cart_builder.split_budget(c["budget"], count / sum(counts))  # 총액 예산은 개수 비율로 나눈다
         candidates, group_stats = cart_builder.search(group["terms"], c["avoid"], c["strict"],
-                                                      exclude_ids={i["id"] for i in cart}, situation=c.get("situation"))
+                                                      exclude_ids={i["id"] for i in cart}, situation=c.get("situation"),
+                                                      user_id=state["user_id"])
         # 같은 대화에서 같은 요청(종류·상황)으로 이미 보여 준 상품은 뒤로 돌린다 → 다시 요청하면 새 상품부터
         shown_key = "|".join(group["terms"]) + "@" + ((c.get("situation") or {}).get("name") or "")
         seen_ids = set(shown.get(shown_key, []))
@@ -239,7 +240,8 @@ def edit_cart(state: CartState) -> dict:
         '피자로 바꿔줘'처럼 콕 집어 말한 상품은 상품명·소분류가 맞는 것만 고른다 (min_score).
         """
         candidates, _ = cart_builder.search(terms, c["avoid"], c["strict"], exclude_ids={item["id"] for item in cart},
-                                            cheap_first=cheap_first, min_score=min_score, situation=c.get("situation"))
+                                            cheap_first=cheap_first, min_score=min_score, situation=c.get("situation"),
+                                            user_id=state["user_id"])
         chosen = []
         for candidate in candidates:
             if len(chosen) >= how_many:
@@ -385,7 +387,7 @@ agent = build_graph()
 def chat(user_id: int, thread_id: str, message: str, selected_member_ids: list[int]) -> dict:
     state = agent.invoke(
         {"user_id": user_id, "message": message, "selected_member_ids": selected_member_ids},
-        config={"configurable": {"thread_id": thread_id}},
+        config={"configurable": {"thread_id": f"{user_id}:{thread_id}"}},
     )
     # 되물은 턴에는 이전 추천을 다시 보여 주지 않는다 (대화 상태에는 그대로 남아 이후 수정에 쓰인다)
     cart = [] if state.get("asked") else state.get("cart", [])

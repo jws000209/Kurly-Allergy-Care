@@ -49,6 +49,13 @@ CREATE TABLE IF NOT EXISTS products (
     review_count INTEGER,
     sales_rank INTEGER
 );
+CREATE TABLE IF NOT EXISTS interactions (
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    product_id TEXT NOT NULL REFERENCES products(id),
+    event TEXT NOT NULL CHECK(event IN ('view', 'like', 'cart', 'purchase')),
+    updated_at TEXT NOT NULL,
+    PRIMARY KEY (user_id, product_id, event)
+);
 """
 
 
@@ -280,3 +287,36 @@ def list_products() -> list[dict]:
     with connect() as conn:
         rows = conn.execute("SELECT * FROM products ORDER BY id").fetchall()
     return [_product(r) for r in rows]
+
+
+def get_user(user_id: int) -> dict | None:
+    with connect() as conn:
+        row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def record_interaction(user_id: int, product_id: str, event: str) -> dict:
+    """동일 행동은 갱신한다. 새로고침이나 API 재시도로 선호 점수가 부풀지 않는다."""
+    if event not in {"view", "like", "cart", "purchase"}:
+        raise ValueError("Unknown interaction event")
+    with connect() as conn:
+        if not conn.execute("SELECT 1 FROM users WHERE id = ?", (user_id,)).fetchone():
+            raise ValueError("Unknown user")
+        if not conn.execute("SELECT 1 FROM products WHERE id = ?", (product_id,)).fetchone():
+            raise ValueError("Unknown product")
+        conn.execute(
+            """INSERT INTO interactions(user_id, product_id, event, updated_at) VALUES (?, ?, ?, ?)
+               ON CONFLICT(user_id, product_id, event) DO UPDATE SET updated_at=excluded.updated_at""",
+            (user_id, product_id, event, datetime.now().isoformat(timespec="seconds")),
+        )
+    return {"user_id": user_id, "product_id": product_id, "event": event}
+
+
+def list_interactions() -> list[dict]:
+    # 시드 교체로 삭제된 상품의 이력은 추천 계산에서 제외한다.
+    with connect() as conn:
+        rows = conn.execute("""SELECT i.* FROM interactions i
+                               JOIN users u ON u.id = i.user_id
+                               JOIN products p ON p.id = i.product_id
+                               ORDER BY i.user_id, i.product_id, i.event""").fetchall()
+    return [dict(row) for row in rows]

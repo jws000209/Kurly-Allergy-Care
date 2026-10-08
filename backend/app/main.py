@@ -1,5 +1,6 @@
 """FastAPI 서버: 크롬 확장 프로그램이 호출하는 API."""
 from contextlib import asynccontextmanager
+from typing import Literal
 
 from dotenv import load_dotenv
 
@@ -9,7 +10,7 @@ from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
-from . import agent, db, intent, profiles  # noqa: E402
+from . import agent, cart_builder, db, intent, profiles, recommender  # noqa: E402
 from .allergens import ALLERGEN_NAMES  # noqa: E402
 from .extractor import NO_LABEL_REVIEWED, extract  # noqa: E402
 from .rule_engine import combine_profiles, judge  # noqa: E402
@@ -180,3 +181,46 @@ def product_min_ea(product_id: str, body: MinEaBody):
 @app.get("/api/products")
 def products():
     return db.list_products()
+
+
+class InteractionBody(BaseModel):
+    product_id: str = Field(min_length=1, max_length=100)
+    event: Literal["view", "like", "cart", "purchase"]
+
+
+@app.post("/api/users/{user_id}/interactions")
+def interaction(user_id: int, body: InteractionBody):
+    try:
+        return db.record_interaction(user_id, body.product_id, body.event)
+    except ValueError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+class RecommendationBody(BaseModel):
+    user_id: int
+    member_ids: list[int] = Field(default_factory=list, max_length=50)
+    mode: Literal["hybrid", "item", "user", "content"] = "hybrid"
+    reference_product_id: str | None = None
+    keywords: list[str] = Field(default_factory=list, max_length=20)
+    count: int = Field(default=5, ge=1, le=30)
+    budget: int | None = Field(default=None, ge=1)
+    exclude_seen: bool = True
+
+
+@app.post("/api/recommendations")
+def recommendations(body: RecommendationBody):
+    if db.get_user(body.user_id) is None:
+        raise HTTPException(404, "사용자를 찾을 수 없습니다")
+    members = db.list_members(body.user_id)
+    if set(body.member_ids) - {m["id"] for m in members}:
+        raise HTTPException(422, "선택한 프로필이 이 사용자의 프로필이 아닙니다")
+    if body.reference_product_id is not None and db.get_product(body.reference_product_id) is None:
+        raise HTTPException(404, "기준 상품을 찾을 수 없습니다")
+    combined = combine_profiles([m for m in members if m["id"] in body.member_ids])
+    candidates, stats = cart_builder.search(body.keywords, combined["avoid"], combined["strict"])
+    ranked = recommender.personalize(candidates, db.list_products(), db.list_interactions(), body.user_id,
+                                     body.mode, body.reference_product_id, body.exclude_seen)
+    items, notes = cart_builder.build(ranked, body.count, body.budget)
+    items, validation_notes = cart_builder.revalidate(items, combined["avoid"], combined["strict"])
+    return {"items": items, "mode": body.mode, "profiles": combined["profiles"], "avoid": combined["avoid"],
+            "stats": stats, "notes": notes + validation_notes}

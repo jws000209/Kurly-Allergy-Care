@@ -310,7 +310,7 @@ def test_chat_keeps_short_history():
         for i in range(8):
             client.post("/api/chat", json={"user_id": user["id"], "thread_id": "h1", "message": f"간식 {i + 1}개",
                                            "selected_member_ids": [kid["id"]]})
-        history = agent.agent.get_state({"configurable": {"thread_id": "h1"}}).values["history"]
+        history = agent.agent.get_state({"configurable": {"thread_id": f"{user['id']}:h1"}}).values["history"]
         assert len(history) == agent.HISTORY_KEEP and history[-1]["user"] == "간식 8개"
         assert history[-1]["bot"] and not history[-1]["asked"]
 

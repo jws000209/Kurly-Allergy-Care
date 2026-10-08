@@ -181,6 +181,7 @@
     }
     try {
       const verdict = await api("/api/check", "POST", { user_id: state.user.id, member_ids: state.selected, product });
+      api(`/api/users/${state.user.id}/interactions`, "POST", { product_id: product.id, event: "view" }).catch(() => {});
       state.page = { product, verdict };
     } catch (_) {
       state.page = null;
@@ -385,6 +386,9 @@
       api(`/api/products/${encodeURIComponent(message.productId)}/min-ea`, "POST", { min_ea: message.minEa }).catch(() => {});
     }
     if (message.ok) {
+      if (state.user) api(`/api/users/${state.user.id}/interactions`, "POST", {
+        product_id: message.productId, event: "cart"
+      }).catch(() => {});
       if (!state.added.includes(message.productId)) state.added.push(message.productId);
       const count = message.qty > 1 ? ` ${message.qty}개를` : "을(를)";
       const why = message.minEa > 1 ? ` (최소 구매 수량 ${message.minEa}개)` : "";
