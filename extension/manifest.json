@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Kurly Allergy Care AX",
+  "version": "0.1.0",
+  "description": "가족 알레르기 프로필에 맞춰 마켓컬리 장바구니를 만들어 주는 챗봇 (팀 우버 MVP)",
+  "permissions": ["storage"],
+  "host_permissions": ["http://127.0.0.1:8000/*"],
+  "background": { "service_worker": "background.js" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.kurly.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
