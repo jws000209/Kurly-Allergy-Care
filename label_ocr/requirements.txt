@@ -1,0 +1,18 @@
+# Python 3.13 (Windows). 가상환경 하나에 모두 설치해도 되지만, Windows OCR과 RapidOCR은 따로 실행한다.
+pandas==3.0.6
+openpyxl==3.1.5
+numpy==2.5.3
+pillow==12.3.0
+# Windows 내장 OCR (ocr_windows.py)
+winrt-runtime==3.2.1
+winrt-Windows.Media.Ocr==3.2.1
+winrt-Windows.Graphics.Imaging==3.2.1
+winrt-Windows.Storage.Streams==3.2.1
+winrt-Windows.Globalization==3.2.1
+winrt-Windows.Foundation==3.2.1
+winrt-Windows.Foundation.Collections==3.2.1
+# RapidOCR + 그래픽카드 (ocr_rapid.py). onnxruntime(일반판)과 같이 깔면 안 된다 — directml 판만
+rapidocr==3.9.2
+onnxruntime-directml==1.24.4
+# 보완 판독(--extra)의 대비 보정
+opencv-python==5.0.0.93

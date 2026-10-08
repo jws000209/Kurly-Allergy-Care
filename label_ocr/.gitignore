@@ -1,0 +1,4 @@
+# OCR 원문은 압축본(*.jsonl.gz)만 올린다 (ocr_rapid.jsonl 이 GitHub 파일 한도 100MB를 넘음)
+ocr_output/*.jsonl
+ocr_output/*.txt
+.venv/
