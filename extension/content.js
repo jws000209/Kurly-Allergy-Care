@@ -468,7 +468,7 @@
       return `<div class="pane">
         <label class="field">프로필 이름<input id="member-name" value="${esc(e.name)}" placeholder="아빠, 엄마, 첫째 아들…" maxlength="20"></label>
         ${aliasSection(e)}
-        <div class="field">관리 알레르겐 (국내 표시대상 19종)</div>
+        <div class="field">관리 알레르겐 (표시대상 19종 + 사전 확장 20종)</div>
         ${state.allergens.length ? "" : `<p class="warn">서버에 연결되지 않아 알레르겐 목록을 불러오지 못했어요.
           backend 폴더의 run.bat을 실행한 뒤 <button data-action="reload-allergens">다시 불러오기</button></p>`}
         <div class="checks">${state.allergens

@@ -262,7 +262,7 @@ def _drop_person_words(intent: dict, message: str) -> dict:
 
 
 def _clean(intent: dict) -> dict:
-    """LLM이 준 성분명을 19종 표준명으로 맞추고, 사전에 없는 값은 버린다."""
+    """LLM이 준 성분명을 39종 표준명으로 맞추고, 사전에 없는 값은 버린다."""
     names = []
     for term in intent.get("excluded_allergens", []):
         name = normalize_allergen(term)

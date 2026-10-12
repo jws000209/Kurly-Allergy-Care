@@ -19,8 +19,17 @@ from app.main import app  # noqa: E402
 from app.rule_engine import BLOCK, PASS, UNVERIFIED, combine_profiles, judge  # noqa: E402
 
 
-def test_19_allergens():
-    assert len(ALLERGEN_NAMES) == 19
+def test_39_allergens():
+    """표시대상 19종 + 사전 확장 20종."""
+    assert len(ALLERGEN_NAMES) == 39
+    assert len(set(ALLERGEN_NAMES)) == 39
+
+
+def test_expanded_allergen_extraction():
+    """확장 항목은 원재료명에서 잡히고, 맛·향 표현은 알레르겐으로 잡히지 않는다."""
+    assert extract("참깨, 설탕", None)["contains"] == ["참깨"]
+    assert "사과" not in extract(None, "사과맛 젤리 - 사과향 함유 없음")["contains"]
+    assert "사과" in extract("사과농축액, 설탕", None)["contains"]
 
 
 def test_extract_ingredients():

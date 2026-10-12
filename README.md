@@ -4,7 +4,7 @@
 
 2026-10-08 기준 **아이템 기반 협업 필터링**, **이 상품을 산 사람이 산 다른 상품 추천**, **콘텐츠 기반 추천**을 구현했습니다. 사용자 요청에서 말한 사용자 기반 기능은 구매자들의 다른 구매 상품을 활용하는 방식으로 반영했습니다.
 
-알레르기 판정은 현재 **기존 19종 사전 + Rule Engine**입니다. 향후 **생성형 AI + RAG**를 사용할 예정이며, 제공된 XLSX 39종 사전은 아직 판정과 프로필에 연결하지 않았습니다. 다음 작업자는 [Handoff.md](Handoff.md)와 [AGENTS.md](AGENTS.md)를 먼저 확인하세요.
+알레르기 판정은 현재 **39종 사전(표시대상 19종 + 확장 20종) + Rule Engine**입니다. 향후 **생성형 AI + RAG**를 사용할 예정입니다. 상품 데이터는 `kurly_products_v2_material_facility.csv`(원재료명·제조시설) 기준 시드(`backend/data/kurly_products_material.json`)를 쓸 수 있습니다. 다음 작업자는 [Handoff.md](Handoff.md)와 [AGENTS.md](AGENTS.md)를 먼저 확인하세요.
 
 ## 실행
 
@@ -61,7 +61,7 @@ Chrome content.js (Shadow DOM 패널, 페이지 읽기, 프로필, 장바구니 
 | --- | --- |
 | `backend/app/main.py` | 요청 스키마, API, CORS, 시작 시 DB 초기화 |
 | `backend/app/db.py` | 스키마·마이그레이션, 시드 동기화, 재추출, 최소 수량 보정, 행동 저장 |
-| `backend/app/allergens.py` | 현재 19종 표준명·동의어·오탐 방지 표현 |
+| `backend/app/allergens.py` | 39종(표시 19종 + 사전 확장 20종) 표준명·동의어·오탐 방지 표현 |
 | `backend/app/extractor.py` | 함유·혼입 구분, 오탈자 보정, 판정 근거 유무 |
 | `backend/app/rule_engine.py` | 회피 성분 합집합, 엄격 모드, PASS/BLOCK/UNVERIFIED |
 | `backend/app/intent.py` | LangChain 구조화 출력, LLM 대체, 규칙 파서 |
@@ -187,4 +187,4 @@ Colab은 `colab/KurlyAllergyCare_LangChain_Colab.ipynb`와 `colab/kac_backend.zi
 - 실제 구매 데이터가 없으면 함께 구매 추천의 근거가 없습니다. 가중치는 초기 설정이며 실제 사용자 로그로 추천 품질을 평가하지 않았습니다.
 - 상품·로그인·장바구니 버튼은 컬리 DOM과 `__NEXT_DATA__`에 의존합니다. 구조 변경 시 `extension/content.js` 점검이 필요합니다.
 - 페이지 상품 저장이 시드의 가격·원재료 등을 빈 값으로 덮을 수 있고, 재시작 때 시드로 다시 맞춰질 수 있습니다. 우선순위 정책은 후속 과제입니다.
-- 현재 PASS는 기존 19종 범위에서 회피 성분 미검출을 뜻합니다. XLSX 확장 성분·예외 정책과 생성형 AI·RAG 연결은 후속 구현입니다.
+- 현재 PASS는 39종 범위에서 회피 성분 미검출을 뜻합니다. 다만 원재료명 OCR은 누락이 많아(재현율 약 35%), 공식 표시가 없는 상품의 원재료명은 판정 근거로 쓰지 않습니다(ingredients_ocr). 예외 정책과 생성형 AI·RAG 연결은 후속 구현입니다.

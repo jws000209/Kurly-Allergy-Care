@@ -77,7 +77,7 @@ class CheckBody(BaseModel):
 def _valid_allergens(allergens: list[str]) -> list[str]:
     unknown = [a for a in allergens if a not in ALLERGEN_NAMES]
     if unknown:
-        raise HTTPException(422, f"관리 대상 19종에 없는 알레르겐: {unknown}")
+        raise HTTPException(422, f"관리 대상 39종에 없는 알레르겐: {unknown}")
     return allergens
 
 
