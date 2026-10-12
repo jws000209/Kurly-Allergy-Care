@@ -8,9 +8,8 @@
     data/kurly_products_material.json                         (서버 시드. 기본 시드 kurly_products.json은 건드리지 않음)
 
 규칙 (판정 안전 기준):
-- 원재료명(OCR)은 단독으로 '확인됨'을 만들지 않는다. kurly 공식 allergy_info가 있는 상품에만
-  원재료명을 ingredients로 넣는다. 공식 표시가 없는 상품은 원재료명을 ingredients_ocr 열에만 남긴다.
-  (원재료명이 있으면 Rule Engine이 '확인됨'으로 보므로, OCR 누락이 PASS로 바뀌는 것을 막기 위함)
+- 판정 기준은 정제된 원재료명(원재료명_정제)이다. 원재료명이 없는 상품은 시드에서 제외된다 (원물 제외).
+  allergy_info의 '함유' 문구는 원재료명이 있을 때 contains 계산에 함께 쓴다.
 - 제조시설 열(라벨 OCR 19종)은 '같은 제조시설' 문구로 바꿔 allergy_label에 덧붙인다 (혼입 가능, 엄격 모드에서만 차단).
 - 공식 표시도 없고 원재료명도 없는 상품은 판정할 수 없으므로 시드에서 빠진다 (import 스크립트 기본 동작).
 """
@@ -19,37 +18,46 @@ import subprocess
 import sys
 from pathlib import Path
 
+NO_LABEL = "[알레르기 표시 없음 · 원물·단순 구성으로 19종 없음 판단]"
+
 BACKEND = Path(__file__).resolve().parents[1]
 DATA = BACKEND.parents[1] / "마켓컬리 데이터"
-SRC = DATA / "kurly_products_v2_material_facility.csv"
+CLEAN = DATA / "kurly_products_v2_material_facility_clean.csv"
 MID = DATA / "kurly_products_v2_material_seed.csv"
 SEED = BACKEND / "data" / "kurly_products_material.json"
 
 
 def build_mid():
-    with open(SRC, encoding="utf-8", newline="") as f:
-        reader = csv.reader(f)
-        header = next(reader)
+    """정제된 원재료명(원재료명_정제)을 판정 입력으로 쓴다. 원재료명이 없는 상품은 ingredients가 비어 시드에서 빠진다.
+
+    원물(원물여부='원물')은 원물 판단 표시를 붙이고, 상품명에서 찾은 알레르겐을 '- X 함유' 줄로 넣는다.
+    """
+    with open(CLEAN, encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
         rows = list(reader)
-    base = header[:-2]  # 마지막 두 열(원재료명·제조시설)은 헤더가 깨져 위치로 읽는다
-    out_cols = base + ["ingredients_text", "ingredients_ocr", "facility_allergens"]
-    ai_i = base.index("allergy_info")
-    n_ing = n_fac = 0
+        base = reader.fieldnames
+    out_cols = [c for c in base if c not in ("원재료명_원본", "원재료명_출처", "원재료명_삭제사유", "원재료명_교정")]
+    out_cols += ["ingredients_text", "facility_allergens"]
+    n_ing = n_raw = 0
     with open(MID, "w", encoding="utf-8", newline="") as f:
         w = csv.writer(f)
         w.writerow(out_cols)
         for r in rows:
-            info = r[ai_i] or ""
-            raw = r[-2] or ""
-            fac = [x.strip() for x in (r[-1] or "").split(",") if x.strip()]
-            ingredients = raw if info.strip() else ""  # 공식 표시가 있을 때만 원재료명 사용
-            n_ing += bool(ingredients)
+            info = (r.get("allergy_info") or "").strip()
+            fac = [x.strip() for x in (r.get("제조시설") or "").split(",") if x.strip()]
+            ingredients = (r.get("원재료명_정제") or "").strip()
+            if r.get("원물여부") == "원물":
+                n_raw += 1
+                names = [x for x in (r.get("원물_이름_알레르겐") or "").split("|") if x]
+                info = NO_LABEL + ("\n" + "\n".join(f"- {x} 함유" for x in names) if names else "")
+                ingredients = ""
             if fac:
                 info = (info.rstrip() + f"\n- {', '.join(fac)}을(를) 사용한 제품과 같은 제조시설에서 제조하고 있습니다.").strip()
-                n_fac += 1
-            w.writerow(r[:ai_i] + [info] + r[ai_i + 1:len(base)]
-                       + [ingredients, raw if not info.strip() or not ingredients else "", ", ".join(fac)])
-    print(f"중간 CSV: {len(rows)}행 | 원재료명 사용 {n_ing} | 제조시설 덧붙임 {n_fac}")
+            n_ing += bool(ingredients)
+            w.writerow([r[c] if c not in ("allergy_info",) else info for c in base
+                        if c not in ("원재료명_원본", "원재료명_출처", "원재료명_삭제사유", "원재료명_교정")]
+                       + [ingredients, ", ".join(fac)])
+    print(f"중간 CSV: {len(rows)}행 | 원재료명 사용 {n_ing} | 원물 {n_raw}")
 
 
 def build_seed():

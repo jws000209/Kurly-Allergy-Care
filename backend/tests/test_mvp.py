@@ -64,7 +64,9 @@ def test_extract_one_line_labels():
 
     # 근거가 없는 안내 문구는 판정하지 않는다
     assert extract("", "옵션별 상이하여 하단 상세페이지 참고 부탁 드립니다.")["verified"] is False
-    assert extract("", "- 해당사항 없음")["verified"] is True
+    # 판정 기준은 원재료명이다. 표시문의 '해당 없음'만으로는 확인됨이 아니다
+    assert extract("", "- 해당사항 없음")["verified"] is False
+    assert extract("정제수, 설탕", "- 해당사항 없음")["verified"] is True
 
 
 def test_kurly_seed_file():
@@ -416,12 +418,16 @@ def test_cross_only_label_is_unverified():
     verdict = judge({**result, "id": "x"}, ["밀"])
     assert verdict["status"] == UNVERIFIED and "같은 제조시설" in verdict["reason"]
     # 함유 표시가 함께 있거나 원재료명이 있으면 판정한다
-    assert extract("", "밀, 대두 함유. " + label)["verified"] is True
-    # 원재료명(OCR)만으로는 확인된 것이 아니다. 함유가 검출되면 BLOCK, 검출되지 않으면 UNVERIFIED
+    assert extract("", "밀, 대두 함유. " + label)["verified"] is False  # 표시문만으로는 확인됨이 아니다
+    assert extract("정제수", "밀, 대두 함유. " + label)["verified"] is True
+    # 판정 기준은 원재료명이다. 원재료명이 있으면 확인됨: 회피 성분이 있으면 BLOCK, 없으면 PASS
     ocr_only = extract("소맥분(밀), 정제염", label)
-    assert ocr_only["verified"] is False
+    assert ocr_only["verified"] is True
     assert judge({**ocr_only, "id": "x"}, ["밀"])["status"] == BLOCK
-    assert judge({**ocr_only, "id": "x"}, ["우유"])["status"] == UNVERIFIED
+    assert judge({**ocr_only, "id": "x"}, ["우유"])["status"] == PASS
+    # 원재료명이 없으면 확인됨이 아니므로 회피 성분이 없어도 UNVERIFIED (추천 제외)
+    assert judge({**extract("", "- 우유 함유"), "id": "x"}, ["우유"])["status"] == BLOCK
+    assert judge({**extract("", "- 대두 함유"), "id": "x"}, ["우유"])["status"] == UNVERIFIED
 
 
 def test_init_db_syncs_products_with_seed(tmp_path, monkeypatch):
@@ -429,7 +435,7 @@ def test_init_db_syncs_products_with_seed(tmp_path, monkeypatch):
     import json
 
     def product(pid, price, source="kurly"):
-        return {"id": pid, "name": f"상품{pid}", "price": price, "category": "간편식>라면", "ingredients": "",
+        return {"id": pid, "name": f"상품{pid}", "price": price, "category": "간편식>라면", "ingredients": "정제수, 설탕",
                 "allergy_label": "밀, 대두 함유", "url": f"https://www.kurly.com/goods/{pid}", "image": "", "source": source}
 
     seed = tmp_path / "seed.json"
@@ -473,7 +479,7 @@ def test_non_allergen_contains_statement_and_reviewed_blank():
     from app.extractor import NO_LABEL_REVIEWED
 
     lamb = extract("", "- 양고기 함유 - 이 제품은 난류, 우유, 땅콩을 사용한 제품과 같은 제조시설에서 제조")
-    assert lamb["verified"] is True and lamb["contains"] == [] and lamb["cross"] == ["땅콩", "알류", "우유"]
+    assert lamb["verified"] is False and lamb["contains"] == [] and lamb["cross"] == ["땅콩", "알류", "우유"]
     assert extract("", "- 산양유 함유")["contains"] == ["우유"]
     # 괄호 안의 '포함'은 함유 표시가 아니다 (제조시설 문구만 있는 상품은 계속 판정 불가)
     assert extract("", "이 제품은 조개류(굴, 전복, 홍합 포함)를 사용한 제품과 같은 제조시설")["verified"] is False
@@ -495,7 +501,7 @@ def test_min_purchase_quantity_counts_in_price(tmp_path, monkeypatch):
     seed = tmp_path / "seed.json"
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "minea.sqlite3")
     monkeypatch.setattr(db, "SEED_PATH", seed)
-    base = {"category": "간편식>만두", "ingredients": "", "allergy_label": "돼지고기, 대두, 밀 함유", "image": "", "source": "kurly"}
+    base = {"category": "간편식>만두", "ingredients": "밀가루, 설탕", "allergy_label": "돼지고기, 대두, 밀 함유", "image": "", "source": "kurly"}
     seed.write_text(json.dumps([{**base, "id": "m2", "name": "김치만두", "price": 5980, "min_ea": 2,
                                   "url": "https://www.kurly.com/goods/m2"},
                                  {**base, "id": "m1", "name": "고기만두", "price": 7000,
@@ -516,7 +522,7 @@ def test_live_min_ea_from_kurly_page(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "live.sqlite3")
     monkeypatch.setattr(db, "SEED_PATH", seed)
     monkeypatch.setattr(db, "LIVE_MIN_EA_PATH", tmp_path / "min_ea_live.json")
-    seed.write_text(json.dumps([{"id": "k1", "name": "칼국수", "price": 5900, "category": "간편식>면류", "ingredients": "",
+    seed.write_text(json.dumps([{"id": "k1", "name": "칼국수", "price": 5900, "category": "간편식>면류", "ingredients": "정제수, 설탕",
                                  "allergy_label": "밀 함유", "image": "", "source": "kurly",
                                  "url": "https://www.kurly.com/goods/k1"}]), encoding="utf-8")
     db.init_db()
@@ -583,7 +589,7 @@ def test_strong_matches_are_not_padded_with_weak_ones(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "SEED_PATH", seed)
     cat = "간편식/밀키트/샐러드>치킨/피자/핫도그/만두"
     rows = [{"id": "p", "name": "화덕피자 도우", "price": 4600}] +            [{"id": f"d{i}", "name": f"고기만두 {i}", "price": 9000} for i in range(4)]
-    seed.write_text(json.dumps([{**r, "category": cat, "ingredients": "", "allergy_label": "대두 함유", "image": "",
+    seed.write_text(json.dumps([{**r, "category": cat, "ingredients": "정제수, 설탕", "allergy_label": "대두 함유", "image": "",
                                  "source": "kurly", "url": f"https://www.kurly.com/goods/{r['id']}"} for r in rows]),
                     encoding="utf-8")
     db.init_db()
@@ -623,7 +629,7 @@ def test_shortage_note_goes_below_the_list(tmp_path, monkeypatch):
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "after.sqlite3")
     monkeypatch.setattr(db, "SEED_PATH", seed)
     rows = [{"id": f"u{i}", "name": f"사누끼 우동면 {i}", "price": 5000} for i in range(3)]
-    seed.write_text(json.dumps([{**r, "category": "면/양념/오일>파스타/면류/조리용 떡", "ingredients": "",
+    seed.write_text(json.dumps([{**r, "category": "면/양념/오일>파스타/면류/조리용 떡", "ingredients": "정제수, 설탕",
                                  "allergy_label": "밀 함유", "image": "", "source": "kurly",
                                  "url": f"https://www.kurly.com/goods/{r['id']}"} for r in rows]), encoding="utf-8")
     with TestClient(app) as client:

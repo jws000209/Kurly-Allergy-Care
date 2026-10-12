@@ -71,9 +71,9 @@ def _match(segment: str) -> set[str]:
 def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     """반환: contains(함유), cross(혼입 가능), verified(판정할 근거가 있는지).
 
-    원재료명이 있으면 그것으로 판정할 수 있다. 알레르기 표시문만 있을 때는
-    알레르겐이 실제로 적혀 있거나 '해당 없음'이 명시된 경우에만 verified로 본다.
-    ('옵션별 상이하여 상세페이지 참고' 같은 문구는 판정 근거가 아니다.)
+    원재료명이 있으면 그것으로 판정할 수 있다 (verified). 원재료명이 없으면 확인됨이 아니다.
+    예외: 원물 판단 표시(NO_LABEL_REVIEWED)가 있으면 원물로 확인됨.
+    알레르기 표시문의 '함유' 문구는 contains 계산에 함께 쓰지만, 그것만으로는 확인됨이 아니다.
     """
     if (allergy_label or "").strip() == NO_LABEL_REVIEWED and not (ingredients or "").strip():
         return {"contains": [], "cross": [], "verified": True}
@@ -100,7 +100,8 @@ def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     # 라면처럼 실제 함유 성분(밀·대두 등)은 뒷면 이미지에만 있고 텍스트에는 혼입 문구만 실린 상품이 많다.
     # 이걸 '함유 없음'으로 보면 밀 알레르기에도 PASS가 되므로, 원재료명이나 '해당 없음' 표시가 없는 한 확인 필요로 둔다.
     # 단, '양고기 함유'처럼 함유 표시 문장이 있으면 표시대로 19종 함유가 없는 것으로 본다.
-    # 원재료명(OCR)만으로는 확인된 것으로 보지 않는다: 잘리거나 일부만 읽힌 원문이 전체 성분 확인처럼 쓰이는 것을 막는다.
-    # 판정 근거는 공식 함유 표시('○○ 함유')나 '해당 없음' 표시가 있을 때만 인정한다.
-    verified = stated or bool(label and _NONE_PATTERN.search(label))
+    # 판정 기준은 원재료명이다. 원재료명이 없으면 판정 근거가 없으므로 확인됨이 아니다 (추천 제외).
+    # 원물(원재료 없이 그 자체인 식품)은 원물 판단 표시(NO_LABEL_REVIEWED)가 있을 때 확인됨으로 본다.
+    # 공식 표시의 '함유' 문구는 원재료명이 있을 때 함께 쓰는 보조 근거이며, 그것만으로는 확인됨이 아니다.
+    verified = bool((ingredients or "").strip()) or (allergy_label or "").strip().startswith(NO_LABEL_REVIEWED)
     return {"contains": sorted(contains), "cross": sorted(cross), "verified": verified}
