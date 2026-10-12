@@ -12,7 +12,7 @@ from .extractor import extract
 BASE_DIR = Path(__file__).resolve().parent.parent
 DB_PATH = Path(os.getenv("KAC_DB_PATH", BASE_DIR / "data" / "kac.sqlite3"))
 # 상품 시드: 팀이 수집한 컬리 상품 (scripts/import_kurly_csv.py 로 생성)
-SEED_PATH = Path(os.getenv("KAC_SEED_PATH", BASE_DIR / "data" / "kurly_products.json"))
+SEED_PATH = Path(os.getenv("KAC_SEED_PATH", BASE_DIR / "data" / "kurly_products_material.json"))
 # 장바구니에 담을 때 컬리 상품 페이지에서 읽은 실제 최소 구매 수량 {상품 id: 수량}. 시드보다 우선한다.
 LIVE_MIN_EA_PATH = Path(os.getenv("KAC_LIVE_MIN_EA_PATH", BASE_DIR / "data" / "min_ea_live.json"))
 

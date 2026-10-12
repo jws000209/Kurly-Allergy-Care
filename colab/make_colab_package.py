@@ -14,7 +14,7 @@ OUT_DIR = ROOT / "colab"
 ZIP_PATH = OUT_DIR / "kac_backend.zip"
 NB_PATH = OUT_DIR / "KurlyAllergyCare_LangChain_Colab.ipynb"
 
-INCLUDE = ["backend/app/*.py", "backend/data/kurly_products.json", "backend/scripts/check_llm.py",
+INCLUDE = ["backend/app/*.py", "backend/data/kurly_products_material.json", "backend/scripts/check_llm.py",
            "backend/tests/*.py", "backend/tests/mock_products.json", "backend/requirements.txt"]
 
 

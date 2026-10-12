@@ -72,7 +72,7 @@ def test_extract_one_line_labels():
 def test_kurly_seed_file():
     """백엔드에 들어가는 실제 컬리 상품 시드가 비어 있지 않고 형식이 맞는지."""
     import json
-    seed = json.loads((Path(__file__).parent.parent / "data" / "kurly_products.json").read_text(encoding="utf-8"))
+    seed = json.loads((Path(__file__).parent.parent / "data" / "kurly_products_material.json").read_text(encoding="utf-8"))
     assert len(seed) >= 1000
     assert all(p["url"].startswith("https://www.kurly.com/goods/") and p["source"] == "kurly" for p in seed)
     assert not any("상품선택" in p["allergy_label"] for p in seed)

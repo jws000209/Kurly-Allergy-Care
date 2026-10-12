@@ -10,7 +10,7 @@
 
 `feat/allergen-39`의 `7c789e0`에서 자동 테스트 45개를 통과했고, 격리된 시험 DB로 기존 시드 4,062개·재료 시드 5,327개·가상 상품 5개의 서버를 각각 기동해 실제 HTTP API를 확인했습니다. item/user/content/hybrid 추천, 대화 생성·삭제·추가·가격 낮추기, 함유·엄격 모드·정보 누락 판정을 실행했습니다. 외부 LLM 호출과 실사용 구매 데이터의 추천 품질은 검증하지 않았습니다.
 
-**39종이 목록에 등록된 것과 39종 전체의 판정 근거가 확보된 것은 다릅니다.** 추가 시험에서 사과 회피 프로필에 사과 원물이 PASS로 추천되는 것을 확인했습니다. 기존 19종 검토 표시의 범위를 확장 성분에도 적용하는 문제와, 불완전한 OCR 원재료명도 `verified=True`로 처리하는 문제가 있습니다. 기본 시드는 여전히 `kurly_products.json`이며 재료 시드는 `KAC_SEED_PATH`로 별도 선택해야 합니다.
+**39종이 목록에 등록된 것과 39종 전체의 판정 근거가 확보된 것은 다릅니다.** 추가 시험에서 사과 회피 프로필에 사과 원물이 PASS로 추천되는 것을 확인했습니다. 기존 19종 검토 표시의 범위를 확장 성분에도 적용하는 문제와, 불완전한 OCR 원재료명도 `verified=True`로 처리하는 문제가 있습니다. 기본 시드는 재료 시드 `kurly_products_material.json`입니다. 기존 4,062개 시드 `kurly_products.json`은 삭제했습니다(git 이력에 남아 있음).
 
 잘못된 프로필 ID를 `/api/check`에 전달하면 회피 조건이 비어 PASS가 되는 문제, 안팎·범위 예산의 가능한 조합을 놓치는 문제, 확장 재료의 기존 성분 오탐, 규칙 파서의 묶음별 개수 누락도 재현했습니다. 이번 작업은 분석·시험이며 해당 코드 결함은 아직 수정하지 않았습니다. 상세 분석과 재현 방법은 [백엔드 분석·시험 보고서](docs/backend-audit/2026-10-12-report.md), 인계 사항은 [Handoff.md](Handoff.md)의 2026-10-12 검증 항목을 참고하세요. 시험 대상 이후 추가된 원재료 정제 스크립트(`08246af`)는 이번 시험 범위에 포함하지 않았습니다.
 
@@ -146,12 +146,12 @@ Chrome content.js (Shadow DOM 패널, 페이지 읽기, 프로필, 장바구니 
 
 ## 상품·DB·사전
 
-상품 시드는 `backend/data/kurly_products.json`의 4,062개, 대분류 13개입니다. 테스트는 `backend/tests/mock_products.json`을 사용합니다. 기본 DB는 `backend/data/kac.sqlite3`이며 최초 실행 시 생성됩니다. 시작 시 시드 변경을 동기화하고 계정·프로필·행동을 보존합니다. 시드에서 빠진 `source=kurly` 상품은 제거하며 현재 없는 상품의 행동은 추천 계산에서 제외합니다.
+상품 시드는 `backend/data/kurly_products_material.json`(원재료명 기준, 6,924개)입니다. 테스트는 `backend/tests/mock_products.json`을 사용합니다. 기본 DB는 `backend/data/kac.sqlite3`이며 최초 실행 시 생성됩니다. 시작 시 시드 변경을 동기화하고 계정·프로필·행동을 보존합니다. 시드에서 빠진 `source=kurly` 상품은 제거하며 현재 없는 상품의 행동은 추천 계산에서 제외합니다.
 
 | 환경변수 | 기본값·역할 |
 | --- | --- |
 | `KAC_DB_PATH` | `backend/data/kac.sqlite3` |
-| `KAC_SEED_PATH` | `backend/data/kurly_products.json` |
+| `KAC_SEED_PATH` | `backend/data/kurly_products_material.json` |
 | `KAC_LIVE_MIN_EA_PATH` | `backend/data/min_ea_live.json`, 최소 수량 보정 |
 | `LLM_MODEL` | 우선 사용할 `제공사:모델` |
 | `GOOGLE_API_KEY`, `GROQ_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` | 선택한 LLM 제공사의 키 |
