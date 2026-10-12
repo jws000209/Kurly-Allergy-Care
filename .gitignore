@@ -4,3 +4,6 @@ __pycache__/
 .env
 backend/data/*.sqlite3
 colab/_kac_run/
+
+# Local output from docs/backend-audit/reproduce_audit.py
+backend-audit-results/

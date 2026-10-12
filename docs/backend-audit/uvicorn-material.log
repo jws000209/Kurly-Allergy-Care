@@ -1,0 +1,31 @@
+INFO:     Started server process [13664]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:55311 (Press CTRL+C to quit)
+INFO:     127.0.0.1:55315 - "GET /api/health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "GET /docs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "GET /openapi.json HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "GET /api/allergens HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/users/1/members HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "GET /api/products HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/users/1/interactions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/users/2/interactions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/users/2/interactions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/recommendations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/recommendations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/recommendations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/recommendations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/users/1/members HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/recommendations HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/users/1/members HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/check HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/check HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/check HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/check HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55315 - "POST /api/recommendations HTTP/1.1" 422 Unprocessable Entity

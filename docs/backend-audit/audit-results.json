@@ -1,0 +1,1966 @@
+{
+  "commit": "7c789e05b4b14181a7cce614ae264af87d4dc430",
+  "python": "3.12.14 (main, Aug 25 2026, 14:01:42) [MSC v.1944 64 bit (AMD64)]",
+  "unit_probes": [
+    {
+      "name": "39 canonical allergens detected",
+      "passed": true,
+      "expected": 39,
+      "actual": 39,
+      "details": {
+        "알류": true,
+        "우유": true,
+        "메밀": true,
+        "땅콩": true,
+        "대두": true,
+        "밀": true,
+        "고등어": true,
+        "게": true,
+        "새우": true,
+        "돼지고기": true,
+        "복숭아": true,
+        "토마토": true,
+        "아황산류": true,
+        "호두": true,
+        "닭고기": true,
+        "쇠고기": true,
+        "오징어": true,
+        "조개류": true,
+        "잣": true,
+        "참깨": true,
+        "캐슈넛": true,
+        "아몬드": true,
+        "피스타치오": true,
+        "헤이즐넛": true,
+        "마카다미아": true,
+        "피칸": true,
+        "브라질너트": true,
+        "겨자": true,
+        "셀러리": true,
+        "루핀": true,
+        "키위": true,
+        "사과": true,
+        "파인애플": true,
+        "바나나": true,
+        "오렌지": true,
+        "들깨": true,
+        "참마": true,
+        "연어": true,
+        "젤라틴": true
+      }
+    },
+    {
+      "name": "strict cross contamination blocked",
+      "passed": true,
+      "expected": "BLOCK",
+      "actual": "BLOCK",
+      "details": null
+    },
+    {
+      "name": "non-strict cross contamination warning",
+      "passed": true,
+      "expected": "PASS",
+      "actual": "PASS",
+      "details": null
+    },
+    {
+      "name": "missing evidence excluded",
+      "passed": true,
+      "expected": "UNVERIFIED",
+      "actual": "UNVERIFIED",
+      "details": null
+    },
+    {
+      "name": "item weighted average single-anchor tie",
+      "passed": true,
+      "expected": {
+        "b": 1.0,
+        "c": 1.0
+      },
+      "actual": {
+        "b": 1.0,
+        "c": 1.0
+      },
+      "details": null
+    },
+    {
+      "name": "co-purchase buyer fractions",
+      "passed": true,
+      "expected": {
+        "b": 1.0,
+        "d": 0.5
+      },
+      "actual": {
+        "b": 1.0,
+        "d": 0.5
+      },
+      "details": null
+    },
+    {
+      "name": "around budget finds feasible 2-item basket",
+      "passed": false,
+      "expected": 2,
+      "actual": 0,
+      "details": {
+        "pool_prices": [
+          1000,
+          3000,
+          5000,
+          10000
+        ],
+        "budget": {
+          "amount": 8000,
+          "mode": "around"
+        },
+        "feasible": [
+          [
+            3000,
+            5000
+          ]
+        ],
+        "actual_prices": [],
+        "notes": [
+          "예산 8,000원 안팎 조건에 맞는 상품이 없어요. (조건을 통과한 상품 중 가장 싼 상품: 1,000원)"
+        ]
+      }
+    },
+    {
+      "name": "plant ingredient false positive: 캐슈밀크",
+      "passed": false,
+      "expected": false,
+      "actual": true,
+      "details": [
+        "우유",
+        "캐슈넛"
+      ]
+    },
+    {
+      "name": "plant ingredient false positive: 캐슈버터",
+      "passed": false,
+      "expected": false,
+      "actual": true,
+      "details": [
+        "우유",
+        "캐슈넛"
+      ]
+    },
+    {
+      "name": "plant ingredient false positive: 루핀콩",
+      "passed": false,
+      "expected": false,
+      "actual": true,
+      "details": [
+        "대두",
+        "루핀"
+      ]
+    },
+    {
+      "name": "plant ingredient false positive: 바나나밀",
+      "passed": false,
+      "expected": false,
+      "actual": true,
+      "details": [
+        "밀",
+        "바나나"
+      ]
+    },
+    {
+      "name": "19-only reviewed evidence does not verify expanded apple",
+      "passed": false,
+      "expected": "UNVERIFIED",
+      "actual": "PASS",
+      "details": null
+    }
+  ],
+  "seed_analysis": {
+    "default": {
+      "file": "kurly_products.json",
+      "products": 4062,
+      "ingredients_present": 0,
+      "reviewed_19_only": 1010,
+      "unverified": 0,
+      "apple_examples": [
+        {
+          "id": "1001303421",
+          "name": "14brix이상 못생겨도 맛있는 사과 1.5kg",
+          "ingredients": "",
+          "status_avoiding_apple": "PASS"
+        },
+        {
+          "id": "1000343040",
+          "name": "[수미과] 물오른 고당도 (홍로) 사과 3kg",
+          "ingredients": "",
+          "status_avoiding_apple": "PASS"
+        },
+        {
+          "id": "1000791205",
+          "name": "[음성명작]500m 고랭지에서 수확한 사과1.3kg",
+          "ingredients": "",
+          "status_avoiding_apple": "PASS"
+        },
+        {
+          "id": "1000914411",
+          "name": "[의성眞] 시나노골드 사과3kg (11~12입)",
+          "ingredients": "",
+          "status_avoiding_apple": "PASS"
+        },
+        {
+          "id": "5061259",
+          "name": "고랭지 홍로 햇사과 1.3kg",
+          "ingredients": "",
+          "status_avoiding_apple": "PASS"
+        }
+      ],
+      "nonpositive_prices": 0
+    },
+    "material": {
+      "file": "kurly_products_material.json",
+      "products": 5327,
+      "ingredients_present": 4684,
+      "reviewed_19_only": 0,
+      "unverified": 0,
+      "apple_examples": [],
+      "nonpositive_prices": 0
+    }
+  },
+  "servers": [
+    {
+      "label": "default",
+      "seed": "backend/data/kurly_products.json",
+      "port": 55306,
+      "transport": "TCP HTTP",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/docs",
+          "status": 200,
+          "milliseconds": 1.23
+        },
+        {
+          "method": "GET",
+          "path": "/openapi.json",
+          "status": 200,
+          "milliseconds": 15.13
+        },
+        {
+          "method": "GET",
+          "path": "/api/allergens",
+          "status": 200,
+          "milliseconds": 1.56
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "status": 200,
+          "milliseconds": 10.67
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 6.5
+        },
+        {
+          "method": "GET",
+          "path": "/api/products",
+          "status": 200,
+          "milliseconds": 124.17
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "status": 200,
+          "milliseconds": 6.27
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/interactions",
+          "status": 200,
+          "milliseconds": 7.12
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/2/interactions",
+          "status": 200,
+          "milliseconds": 5.87
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/2/interactions",
+          "status": 200,
+          "milliseconds": 6.9
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 185.18
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 127.32
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 102.0
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 106.57
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 137.38
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 9.15
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 77.62
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 114.15
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 10.79
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 104.98
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 6.16
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 3.52
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 1.86
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 2.29
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 2.49
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 422,
+          "milliseconds": 3.08,
+          "response": {
+            "detail": "선택한 프로필이 이 사용자의 프로필이 아닙니다"
+          }
+        }
+      ],
+      "startup_seconds": 1.866,
+      "health": {
+        "ok": true,
+        "llm": null,
+        "llm_last_error": null,
+        "products": 4062
+      },
+      "allergen_count": 39,
+      "recommendations": [
+        {
+          "mode": "item",
+          "count": 4,
+          "total": 19550,
+          "methods": [
+            "content",
+            "item"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 19,
+            "situation_excluded": 0,
+            "PASS": 15,
+            "BLOCK": 4,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548916",
+              "name": "[돈시몬] 착즙 레몬주스 1L",
+              "score": 1.0
+            },
+            {
+              "id": "1002311664",
+              "name": "[코코씸] 100% 퓨어 코코넛 워터 1L",
+              "score": 0.426523
+            },
+            {
+              "id": "1002311657",
+              "name": "[페페브루노] 100% 코코넛 워터 1L",
+              "score": 0.41991218
+            },
+            {
+              "id": "1002070227",
+              "name": "[풀무원] 아임리얼 순수착즙오렌지 오렌지 190mL",
+              "score": 0.34574899
+            }
+          ]
+        },
+        {
+          "mode": "user",
+          "count": 4,
+          "total": 19550,
+          "methods": [
+            "co_purchase",
+            "content"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 19,
+            "situation_excluded": 0,
+            "PASS": 15,
+            "BLOCK": 4,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548916",
+              "name": "[돈시몬] 착즙 레몬주스 1L",
+              "score": 1.0
+            },
+            {
+              "id": "1002311664",
+              "name": "[코코씸] 100% 퓨어 코코넛 워터 1L",
+              "score": 0.426523
+            },
+            {
+              "id": "1002311657",
+              "name": "[페페브루노] 100% 코코넛 워터 1L",
+              "score": 0.41991218
+            },
+            {
+              "id": "1002070227",
+              "name": "[풀무원] 아임리얼 순수착즙오렌지 오렌지 190mL",
+              "score": 0.34574899
+            }
+          ]
+        },
+        {
+          "mode": "content",
+          "count": 4,
+          "total": 19270,
+          "methods": [
+            "content"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 19,
+            "situation_excluded": 0,
+            "PASS": 15,
+            "BLOCK": 4,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548918",
+              "name": "[돈시몬] 착즙 토마토주스 1L",
+              "score": 0.55491643
+            },
+            {
+              "id": "5001234",
+              "name": "[말리] 코코넛 워터 1L",
+              "score": 0.46259826
+            },
+            {
+              "id": "1002311664",
+              "name": "[코코씸] 100% 퓨어 코코넛 워터 1L",
+              "score": 0.426523
+            },
+            {
+              "id": "1002311657",
+              "name": "[페페브루노] 100% 코코넛 워터 1L",
+              "score": 0.41991218
+            }
+          ]
+        },
+        {
+          "mode": "hybrid",
+          "count": 4,
+          "total": 19550,
+          "methods": [
+            "content",
+            "hybrid"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 19,
+            "situation_excluded": 0,
+            "PASS": 15,
+            "BLOCK": 4,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548916",
+              "name": "[돈시몬] 착즙 레몬주스 1L",
+              "score": 0.84605197
+            },
+            {
+              "id": "1002311664",
+              "name": "[코코씸] 100% 퓨어 코코넛 워터 1L",
+              "score": 0.426523
+            },
+            {
+              "id": "1002311657",
+              "name": "[페페브루노] 100% 코코넛 워터 1L",
+              "score": 0.41991218
+            },
+            {
+              "id": "1002070227",
+              "name": "[풀무원] 아임리얼 순수착즙오렌지 오렌지 190mL",
+              "score": 0.34574899
+            }
+          ]
+        }
+      ],
+      "chat": [
+        {
+          "message": "주스 2개 2만원 이내",
+          "parser": "rule",
+          "action": "create_cart",
+          "asked": false,
+          "count": 2,
+          "total": 11960,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내"
+        },
+        {
+          "message": "1번 상품 빼줘",
+          "parser": "rule",
+          "action": "remove_item",
+          "asked": false,
+          "count": 1,
+          "total": 4980,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 1개 · 예산 20,000원 이내\n'[돈시몬] 착즙 레몬주스 1L'을(를) 뺐어요."
+        },
+        {
+          "message": "주스 1개 추가해줘",
+          "parser": "rule",
+          "action": "add_item",
+          "asked": false,
+          "count": 2,
+          "total": 11960,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내\n[돈시몬] 착즙 레몬주스 1L을(를) 추가했어요."
+        },
+        {
+          "message": "더 저렴하게",
+          "parser": "rule",
+          "action": "cheaper",
+          "asked": false,
+          "count": 2,
+          "total": 8070,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내\n2개 상품을 같은 유형의 더 저렴한 상품으로 바꿨어요."
+        }
+      ],
+      "apple_avoid_recommendations": [
+        {
+          "id": "5005943",
+          "name": "저탄소 사과 1.3kg (4~5입)",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)"
+        },
+        {
+          "id": "1000343040",
+          "name": "[수미과] 물오른 고당도 (홍로) 사과 3kg",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)"
+        },
+        {
+          "id": "1002419003",
+          "name": "[푸드팩토리] 달콤 한 입 조각 사과 (600g) (품종: 홍로)",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)"
+        },
+        {
+          "id": "5060704",
+          "name": "홍옥 사과 1.3kg (5~7입)",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)"
+        },
+        {
+          "id": "1001303421",
+          "name": "14brix이상 못생겨도 맛있는 사과 1.5kg",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)"
+        }
+      ],
+      "check_cases": [
+        {
+          "ingredients": "참깨, 설탕",
+          "label": "",
+          "expected": "BLOCK",
+          "actual": "BLOCK"
+        },
+        {
+          "ingredients": "정제수",
+          "label": "우유를 사용한 제품과 같은 제조시설",
+          "expected": "BLOCK",
+          "actual": "BLOCK"
+        },
+        {
+          "ingredients": "",
+          "label": "",
+          "expected": "UNVERIFIED",
+          "actual": "UNVERIFIED"
+        }
+      ],
+      "invalid_profile_check": {
+        "status": "PASS",
+        "matched": [],
+        "cross_matched": [],
+        "reason": "회피 알레르겐 미검출",
+        "profiles": [],
+        "avoid": [],
+        "contains": [
+          "우유"
+        ],
+        "cross": []
+      },
+      "stopped": true
+    },
+    {
+      "label": "material",
+      "seed": "backend/data/kurly_products_material.json",
+      "port": 55311,
+      "transport": "TCP HTTP",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/docs",
+          "status": 200,
+          "milliseconds": 1.19
+        },
+        {
+          "method": "GET",
+          "path": "/openapi.json",
+          "status": 200,
+          "milliseconds": 15.3
+        },
+        {
+          "method": "GET",
+          "path": "/api/allergens",
+          "status": 200,
+          "milliseconds": 1.51
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "status": 200,
+          "milliseconds": 12.15
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 6.09
+        },
+        {
+          "method": "GET",
+          "path": "/api/products",
+          "status": 200,
+          "milliseconds": 198.81
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "status": 200,
+          "milliseconds": 6.53
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/interactions",
+          "status": 200,
+          "milliseconds": 7.5
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/2/interactions",
+          "status": 200,
+          "milliseconds": 6.39
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/2/interactions",
+          "status": 200,
+          "milliseconds": 6.02
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 591.95
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 206.54
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 193.27
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 236.57
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 205.61
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 8.03
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 173.89
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 180.7
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 6.07
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 200.47
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 6.87
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 3.6
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 1.82
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 2.42
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 2.54
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 422,
+          "milliseconds": 2.31,
+          "response": {
+            "detail": "선택한 프로필이 이 사용자의 프로필이 아닙니다"
+          }
+        }
+      ],
+      "startup_seconds": 3.053,
+      "health": {
+        "ok": true,
+        "llm": null,
+        "llm_last_error": null,
+        "products": 5327
+      },
+      "allergen_count": 39,
+      "recommendations": [
+        {
+          "mode": "item",
+          "count": 3,
+          "total": 16760,
+          "methods": [
+            "content",
+            "item"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 48,
+            "situation_excluded": 0,
+            "PASS": 11,
+            "BLOCK": 37,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548916",
+              "name": "[돈시몬] 착즙 레몬주스 1L",
+              "score": 1.0
+            },
+            {
+              "id": "1000548918",
+              "name": "[돈시몬] 착즙 토마토주스 1L",
+              "score": 0.25809859
+            },
+            {
+              "id": "5004388",
+              "name": "[노아주스] 과일주스 260mL 11종 (택1)",
+              "score": 0.21423536
+            }
+          ]
+        },
+        {
+          "mode": "user",
+          "count": 3,
+          "total": 16760,
+          "methods": [
+            "co_purchase",
+            "content"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 48,
+            "situation_excluded": 0,
+            "PASS": 11,
+            "BLOCK": 37,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548916",
+              "name": "[돈시몬] 착즙 레몬주스 1L",
+              "score": 1.0
+            },
+            {
+              "id": "1000548918",
+              "name": "[돈시몬] 착즙 토마토주스 1L",
+              "score": 0.25809859
+            },
+            {
+              "id": "5004388",
+              "name": "[노아주스] 과일주스 260mL 11종 (택1)",
+              "score": 0.21423536
+            }
+          ]
+        },
+        {
+          "mode": "content",
+          "count": 3,
+          "total": 19160,
+          "methods": [
+            "content"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 48,
+            "situation_excluded": 0,
+            "PASS": 11,
+            "BLOCK": 37,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "5131260",
+              "name": "[돈시몬] 착즙 적포도 주스 2L",
+              "score": 0.26492433
+            },
+            {
+              "id": "1000548918",
+              "name": "[돈시몬] 착즙 토마토주스 1L",
+              "score": 0.25809859
+            },
+            {
+              "id": "5004388",
+              "name": "[노아주스] 과일주스 260mL 11종 (택1)",
+              "score": 0.21423536
+            }
+          ]
+        },
+        {
+          "mode": "hybrid",
+          "count": 3,
+          "total": 16760,
+          "methods": [
+            "content",
+            "hybrid"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 48,
+            "situation_excluded": 0,
+            "PASS": 11,
+            "BLOCK": 37,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "1000548916",
+              "name": "[돈시몬] 착즙 레몬주스 1L",
+              "score": 0.77868406
+            },
+            {
+              "id": "1000548918",
+              "name": "[돈시몬] 착즙 토마토주스 1L",
+              "score": 0.25809859
+            },
+            {
+              "id": "5004388",
+              "name": "[노아주스] 과일주스 260mL 11종 (택1)",
+              "score": 0.21423536
+            }
+          ]
+        }
+      ],
+      "chat": [
+        {
+          "message": "주스 2개 2만원 이내",
+          "parser": "rule",
+          "action": "create_cart",
+          "asked": false,
+          "count": 2,
+          "total": 18960,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내"
+        },
+        {
+          "message": "1번 상품 빼줘",
+          "parser": "rule",
+          "action": "remove_item",
+          "asked": false,
+          "count": 1,
+          "total": 11980,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 1개 · 예산 20,000원 이내\n'[돈시몬] 착즙 레몬주스 1L'을(를) 뺐어요."
+        },
+        {
+          "message": "주스 1개 추가해줘",
+          "parser": "rule",
+          "action": "add_item",
+          "asked": false,
+          "count": 2,
+          "total": 18960,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내\n[돈시몬] 착즙 레몬주스 1L을(를) 추가했어요."
+        },
+        {
+          "message": "더 저렴하게",
+          "parser": "rule",
+          "action": "cheaper",
+          "asked": false,
+          "count": 2,
+          "total": 11960,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내\n1개 상품을 같은 유형의 더 저렴한 상품으로 바꿨어요."
+        }
+      ],
+      "apple_avoid_recommendations": [
+        {
+          "id": "5151753",
+          "name": "[김재식헬스푸드] 토마토 사과 당근즙 30포",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출"
+        },
+        {
+          "id": "1001114957",
+          "name": "[요미요미] 유기농 롱롱뻥 사과맛 24g",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출"
+        },
+        {
+          "id": "5063488",
+          "name": "[스키니랩] 애플페논 풋사과 다이어트 (14일분)",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출"
+        },
+        {
+          "id": "1001558590",
+          "name": "[베키아에누보] 문경사과 롤케이크 250g",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출"
+        },
+        {
+          "id": "5141905",
+          "name": "[자임] 당근사과 착즙주스 1L",
+          "status": "PASS",
+          "reason": "회피 알레르겐 미검출"
+        }
+      ],
+      "check_cases": [
+        {
+          "ingredients": "참깨, 설탕",
+          "label": "",
+          "expected": "BLOCK",
+          "actual": "BLOCK"
+        },
+        {
+          "ingredients": "정제수",
+          "label": "우유를 사용한 제품과 같은 제조시설",
+          "expected": "BLOCK",
+          "actual": "BLOCK"
+        },
+        {
+          "ingredients": "",
+          "label": "",
+          "expected": "UNVERIFIED",
+          "actual": "UNVERIFIED"
+        }
+      ],
+      "invalid_profile_check": {
+        "status": "PASS",
+        "matched": [],
+        "cross_matched": [],
+        "reason": "회피 알레르겐 미검출",
+        "profiles": [],
+        "avoid": [],
+        "contains": [
+          "우유"
+        ],
+        "cross": []
+      },
+      "stopped": true
+    },
+    {
+      "label": "synthetic",
+      "seed": "<temporary synthetic seed>",
+      "port": 55316,
+      "transport": "TCP HTTP",
+      "requests": [
+        {
+          "method": "GET",
+          "path": "/docs",
+          "status": 200,
+          "milliseconds": 0.84
+        },
+        {
+          "method": "GET",
+          "path": "/openapi.json",
+          "status": 200,
+          "milliseconds": 15.88
+        },
+        {
+          "method": "GET",
+          "path": "/api/allergens",
+          "status": 200,
+          "milliseconds": 1.54
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "status": 200,
+          "milliseconds": 10.92
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 7.66
+        },
+        {
+          "method": "GET",
+          "path": "/api/products",
+          "status": 200,
+          "milliseconds": 2.8
+        },
+        {
+          "method": "POST",
+          "path": "/api/login",
+          "status": 200,
+          "milliseconds": 5.51
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/interactions",
+          "status": 200,
+          "milliseconds": 7.3
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/2/interactions",
+          "status": 200,
+          "milliseconds": 6.67
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/2/interactions",
+          "status": 200,
+          "milliseconds": 6.64
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 9.04
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 6.91
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 6.43
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 6.62
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 15.21
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 7.55
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 9.32
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 9.62
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 5.29
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 200,
+          "milliseconds": 6.09
+        },
+        {
+          "method": "POST",
+          "path": "/api/users/1/members",
+          "status": 200,
+          "milliseconds": 5.22
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 3.55
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 1.83
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 2.39
+        },
+        {
+          "method": "POST",
+          "path": "/api/check",
+          "status": 200,
+          "milliseconds": 3.12
+        },
+        {
+          "method": "POST",
+          "path": "/api/recommendations",
+          "status": 422,
+          "milliseconds": 2.42,
+          "response": {
+            "detail": "선택한 프로필이 이 사용자의 프로필이 아닙니다"
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 8.55,
+          "response": {
+            "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n예산 8,000원 안팎 조건에 맞는 상품이 없어요. (조건을 통과한 상품 중 가장 싼 상품: 1,000원)",
+            "cart": [],
+            "asked": false,
+            "intent": {
+              "action": "create_cart",
+              "target_profiles": [],
+              "excluded_allergens": [],
+              "category_or_purpose": "주스",
+              "keywords": [],
+              "budget": 8000,
+              "budget_mode": "around",
+              "budget_min": null,
+              "per_item": false,
+              "item_count": 2,
+              "item_index": null,
+              "from_keyword": null,
+              "to_keyword": null,
+              "preferences": [],
+              "groups": [],
+              "situation": null,
+              "situation_prefer": [],
+              "situation_avoid": []
+            },
+            "parser": "rule",
+            "llm": null,
+            "picked_by": null,
+            "notes_after": [],
+            "constraints": {
+              "avoid": [
+                "우유"
+              ],
+              "strict": true,
+              "profiles": [
+                "본인"
+              ],
+              "ask": null,
+              "member_ids": [
+                4
+              ],
+              "kept_targets": false,
+              "understood": null,
+              "extra_excluded": [],
+              "terms": [
+                "주스"
+              ],
+              "groups": [
+                {
+                  "label": null,
+                  "terms": [
+                    "주스"
+                  ],
+                  "count": null
+                }
+              ],
+              "situation": null,
+              "request": "주스 2개 8천원 안팎",
+              "preferences": [],
+              "budget": {
+                "amount": 8000,
+                "mode": "around",
+                "min": null,
+                "per_item": false
+              },
+              "count": 2,
+              "again": false
+            }
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/api/chat",
+          "status": 200,
+          "milliseconds": 13.68,
+          "response": {
+            "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 3개 (주스 2 · 콜라 1) · 예산 10,000원 이내",
+            "cart": [
+              {
+                "id": "j0",
+                "name": "주스 0",
+                "price": 1000,
+                "unit_price": 1000,
+                "min_ea": 1,
+                "review_count": 100,
+                "sales_rank": null,
+                "category": "음료>주스",
+                "url": "https://www.kurly.com/search?sword=%EC%A3%BC%EC%8A%A4%200",
+                "image": "",
+                "source": "kurly",
+                "status": "PASS",
+                "reason": "회피 알레르겐 미검출",
+                "cross_matched": [],
+                "last_checked_at": "2026-10-12T14:04:55",
+                "needs_option": false,
+                "score": 3,
+                "preferred": false,
+                "recommendation_score": 1.0,
+                "recommendation_method": "content",
+                "content_score": 1.0,
+                "item_score": 0.0,
+                "co_purchase_score": 0.0,
+                "group": "주스"
+              },
+              {
+                "id": "j1",
+                "name": "주스 1",
+                "price": 3000,
+                "unit_price": 3000,
+                "min_ea": 1,
+                "review_count": 99,
+                "sales_rank": null,
+                "category": "음료>주스",
+                "url": "https://www.kurly.com/search?sword=%EC%A3%BC%EC%8A%A4%201",
+                "image": "",
+                "source": "kurly",
+                "status": "PASS",
+                "reason": "회피 알레르겐 미검출",
+                "cross_matched": [],
+                "last_checked_at": "2026-10-12T14:04:55",
+                "needs_option": false,
+                "score": 3,
+                "preferred": false,
+                "recommendation_score": 1.0,
+                "recommendation_method": "hybrid",
+                "content_score": 1.0,
+                "item_score": 1.0,
+                "co_purchase_score": 1.0,
+                "group": "주스"
+              },
+              {
+                "id": "cola",
+                "name": "콜라",
+                "price": 1000,
+                "unit_price": 1000,
+                "min_ea": 1,
+                "review_count": null,
+                "sales_rank": null,
+                "category": "음료>탄산음료",
+                "url": "https://www.kurly.com/search?sword=%EC%BD%9C%EB%9D%BC",
+                "image": "",
+                "source": "kurly",
+                "status": "PASS",
+                "reason": "회피 알레르겐 미검출",
+                "cross_matched": [],
+                "last_checked_at": "2026-10-12T14:04:55",
+                "needs_option": false,
+                "score": 2,
+                "preferred": false,
+                "recommendation_score": 0.26547233,
+                "recommendation_method": "content",
+                "content_score": 0.26547233,
+                "item_score": 0.0,
+                "co_purchase_score": 0.0,
+                "group": "콜라"
+              }
+            ],
+            "asked": false,
+            "intent": {
+              "action": "create_cart",
+              "target_profiles": [],
+              "excluded_allergens": [],
+              "category_or_purpose": "주스",
+              "keywords": [
+                "콜라"
+              ],
+              "budget": 10000,
+              "budget_mode": "max",
+              "budget_min": null,
+              "per_item": false,
+              "item_count": 3,
+              "item_index": null,
+              "from_keyword": null,
+              "to_keyword": null,
+              "preferences": [],
+              "groups": [
+                {
+                  "label": "주스",
+                  "keywords": [
+                    "주스"
+                  ],
+                  "count": null
+                },
+                {
+                  "label": "콜라",
+                  "keywords": [
+                    "콜라"
+                  ],
+                  "count": null
+                }
+              ],
+              "situation": null,
+              "situation_prefer": [],
+              "situation_avoid": []
+            },
+            "parser": "rule",
+            "llm": null,
+            "picked_by": null,
+            "notes_after": [],
+            "constraints": {
+              "avoid": [
+                "우유"
+              ],
+              "strict": true,
+              "profiles": [
+                "본인"
+              ],
+              "ask": null,
+              "member_ids": [
+                4
+              ],
+              "kept_targets": false,
+              "understood": null,
+              "extra_excluded": [],
+              "terms": [
+                "주스",
+                "콜라"
+              ],
+              "groups": [
+                {
+                  "label": "주스",
+                  "terms": [
+                    "주스"
+                  ],
+                  "count": null
+                },
+                {
+                  "label": "콜라",
+                  "terms": [
+                    "콜라"
+                  ],
+                  "count": null
+                }
+              ],
+              "situation": null,
+              "request": "주스 3개랑 콜라 1개 1만원 이내",
+              "preferences": [],
+              "budget": {
+                "amount": 10000,
+                "mode": "max",
+                "min": null,
+                "per_item": false
+              },
+              "count": 3,
+              "again": false
+            }
+          }
+        }
+      ],
+      "startup_seconds": 1.343,
+      "health": {
+        "ok": true,
+        "llm": null,
+        "llm_last_error": null,
+        "products": 5
+      },
+      "allergen_count": 39,
+      "recommendations": [
+        {
+          "mode": "item",
+          "count": 3,
+          "total": 18000,
+          "methods": [
+            "content",
+            "item"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 4,
+            "situation_excluded": 0,
+            "PASS": 4,
+            "BLOCK": 0,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "j1",
+              "name": "주스 1",
+              "score": 1.0
+            },
+            {
+              "id": "j2",
+              "name": "주스 2",
+              "score": 1.0
+            },
+            {
+              "id": "j3",
+              "name": "주스 3",
+              "score": 1.0
+            }
+          ]
+        },
+        {
+          "mode": "user",
+          "count": 3,
+          "total": 18000,
+          "methods": [
+            "co_purchase",
+            "content"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 4,
+            "situation_excluded": 0,
+            "PASS": 4,
+            "BLOCK": 0,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "j1",
+              "name": "주스 1",
+              "score": 1.0
+            },
+            {
+              "id": "j2",
+              "name": "주스 2",
+              "score": 1.0
+            },
+            {
+              "id": "j3",
+              "name": "주스 3",
+              "score": 1.0
+            }
+          ]
+        },
+        {
+          "mode": "content",
+          "count": 3,
+          "total": 18000,
+          "methods": [
+            "content"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 4,
+            "situation_excluded": 0,
+            "PASS": 4,
+            "BLOCK": 0,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "j1",
+              "name": "주스 1",
+              "score": 1.0
+            },
+            {
+              "id": "j2",
+              "name": "주스 2",
+              "score": 1.0
+            },
+            {
+              "id": "j3",
+              "name": "주스 3",
+              "score": 1.0
+            }
+          ]
+        },
+        {
+          "mode": "hybrid",
+          "count": 3,
+          "total": 18000,
+          "methods": [
+            "content",
+            "hybrid"
+          ],
+          "all_pass": true,
+          "known_blocked_or_unverified_returned": false,
+          "stats": {
+            "matched": 4,
+            "situation_excluded": 0,
+            "PASS": 4,
+            "BLOCK": 0,
+            "UNVERIFIED": 0
+          },
+          "items": [
+            {
+              "id": "j1",
+              "name": "주스 1",
+              "score": 1.0
+            },
+            {
+              "id": "j2",
+              "name": "주스 2",
+              "score": 1.0
+            },
+            {
+              "id": "j3",
+              "name": "주스 3",
+              "score": 1.0
+            }
+          ]
+        }
+      ],
+      "chat": [
+        {
+          "message": "주스 2개 2만원 이내",
+          "parser": "rule",
+          "action": "create_cart",
+          "asked": false,
+          "count": 2,
+          "total": 4000,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내"
+        },
+        {
+          "message": "1번 상품 빼줘",
+          "parser": "rule",
+          "action": "remove_item",
+          "asked": false,
+          "count": 1,
+          "total": 3000,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 1개 · 예산 20,000원 이내\n'주스 0'을(를) 뺐어요."
+        },
+        {
+          "message": "주스 1개 추가해줘",
+          "parser": "rule",
+          "action": "add_item",
+          "asked": false,
+          "count": 2,
+          "total": 4000,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내\n주스 0을(를) 추가했어요."
+        },
+        {
+          "message": "더 저렴하게",
+          "parser": "rule",
+          "action": "cheaper",
+          "asked": false,
+          "count": 2,
+          "total": 4000,
+          "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 2개 · 예산 20,000원 이내\n같은 유형에서 더 저렴한 검증 통과 상품이 없어요. 개수나 상품 유형을 바꿔 보시겠어요?"
+        }
+      ],
+      "apple_avoid_recommendations": [],
+      "check_cases": [
+        {
+          "ingredients": "참깨, 설탕",
+          "label": "",
+          "expected": "BLOCK",
+          "actual": "BLOCK"
+        },
+        {
+          "ingredients": "정제수",
+          "label": "우유를 사용한 제품과 같은 제조시설",
+          "expected": "BLOCK",
+          "actual": "BLOCK"
+        },
+        {
+          "ingredients": "",
+          "label": "",
+          "expected": "UNVERIFIED",
+          "actual": "UNVERIFIED"
+        }
+      ],
+      "invalid_profile_check": {
+        "status": "PASS",
+        "matched": [],
+        "cross_matched": [],
+        "reason": "회피 알레르겐 미검출",
+        "profiles": [],
+        "avoid": [],
+        "contains": [
+          "우유"
+        ],
+        "cross": []
+      },
+      "around_budget_chat": {
+        "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n예산 8,000원 안팎 조건에 맞는 상품이 없어요. (조건을 통과한 상품 중 가장 싼 상품: 1,000원)",
+        "cart": [],
+        "asked": false,
+        "intent": {
+          "action": "create_cart",
+          "target_profiles": [],
+          "excluded_allergens": [],
+          "category_or_purpose": "주스",
+          "keywords": [],
+          "budget": 8000,
+          "budget_mode": "around",
+          "budget_min": null,
+          "per_item": false,
+          "item_count": 2,
+          "item_index": null,
+          "from_keyword": null,
+          "to_keyword": null,
+          "preferences": [],
+          "groups": [],
+          "situation": null,
+          "situation_prefer": [],
+          "situation_avoid": []
+        },
+        "parser": "rule",
+        "llm": null,
+        "picked_by": null,
+        "notes_after": [],
+        "constraints": {
+          "avoid": [
+            "우유"
+          ],
+          "strict": true,
+          "profiles": [
+            "본인"
+          ],
+          "ask": null,
+          "member_ids": [
+            4
+          ],
+          "kept_targets": false,
+          "understood": null,
+          "extra_excluded": [],
+          "terms": [
+            "주스"
+          ],
+          "groups": [
+            {
+              "label": null,
+              "terms": [
+                "주스"
+              ],
+              "count": null
+            }
+          ],
+          "situation": null,
+          "request": "주스 2개 8천원 안팎",
+          "preferences": [],
+          "budget": {
+            "amount": 8000,
+            "mode": "around",
+            "min": null,
+            "per_item": false
+          },
+          "count": 2,
+          "again": false
+        }
+      },
+      "group_chat": {
+        "reply": "[본인] 회피 알레르겐: 우유 (혼입 가능 표시도 제외)\n추천 상품 3개 (주스 2 · 콜라 1) · 예산 10,000원 이내",
+        "cart": [
+          {
+            "id": "j0",
+            "name": "주스 0",
+            "price": 1000,
+            "unit_price": 1000,
+            "min_ea": 1,
+            "review_count": 100,
+            "sales_rank": null,
+            "category": "음료>주스",
+            "url": "https://www.kurly.com/search?sword=%EC%A3%BC%EC%8A%A4%200",
+            "image": "",
+            "source": "kurly",
+            "status": "PASS",
+            "reason": "회피 알레르겐 미검출",
+            "cross_matched": [],
+            "last_checked_at": "2026-10-12T14:04:55",
+            "needs_option": false,
+            "score": 3,
+            "preferred": false,
+            "recommendation_score": 1.0,
+            "recommendation_method": "content",
+            "content_score": 1.0,
+            "item_score": 0.0,
+            "co_purchase_score": 0.0,
+            "group": "주스"
+          },
+          {
+            "id": "j1",
+            "name": "주스 1",
+            "price": 3000,
+            "unit_price": 3000,
+            "min_ea": 1,
+            "review_count": 99,
+            "sales_rank": null,
+            "category": "음료>주스",
+            "url": "https://www.kurly.com/search?sword=%EC%A3%BC%EC%8A%A4%201",
+            "image": "",
+            "source": "kurly",
+            "status": "PASS",
+            "reason": "회피 알레르겐 미검출",
+            "cross_matched": [],
+            "last_checked_at": "2026-10-12T14:04:55",
+            "needs_option": false,
+            "score": 3,
+            "preferred": false,
+            "recommendation_score": 1.0,
+            "recommendation_method": "hybrid",
+            "content_score": 1.0,
+            "item_score": 1.0,
+            "co_purchase_score": 1.0,
+            "group": "주스"
+          },
+          {
+            "id": "cola",
+            "name": "콜라",
+            "price": 1000,
+            "unit_price": 1000,
+            "min_ea": 1,
+            "review_count": null,
+            "sales_rank": null,
+            "category": "음료>탄산음료",
+            "url": "https://www.kurly.com/search?sword=%EC%BD%9C%EB%9D%BC",
+            "image": "",
+            "source": "kurly",
+            "status": "PASS",
+            "reason": "회피 알레르겐 미검출",
+            "cross_matched": [],
+            "last_checked_at": "2026-10-12T14:04:55",
+            "needs_option": false,
+            "score": 2,
+            "preferred": false,
+            "recommendation_score": 0.26547233,
+            "recommendation_method": "content",
+            "content_score": 0.26547233,
+            "item_score": 0.0,
+            "co_purchase_score": 0.0,
+            "group": "콜라"
+          }
+        ],
+        "asked": false,
+        "intent": {
+          "action": "create_cart",
+          "target_profiles": [],
+          "excluded_allergens": [],
+          "category_or_purpose": "주스",
+          "keywords": [
+            "콜라"
+          ],
+          "budget": 10000,
+          "budget_mode": "max",
+          "budget_min": null,
+          "per_item": false,
+          "item_count": 3,
+          "item_index": null,
+          "from_keyword": null,
+          "to_keyword": null,
+          "preferences": [],
+          "groups": [
+            {
+              "label": "주스",
+              "keywords": [
+                "주스"
+              ],
+              "count": null
+            },
+            {
+              "label": "콜라",
+              "keywords": [
+                "콜라"
+              ],
+              "count": null
+            }
+          ],
+          "situation": null,
+          "situation_prefer": [],
+          "situation_avoid": []
+        },
+        "parser": "rule",
+        "llm": null,
+        "picked_by": null,
+        "notes_after": [],
+        "constraints": {
+          "avoid": [
+            "우유"
+          ],
+          "strict": true,
+          "profiles": [
+            "본인"
+          ],
+          "ask": null,
+          "member_ids": [
+            4
+          ],
+          "kept_targets": false,
+          "understood": null,
+          "extra_excluded": [],
+          "terms": [
+            "주스",
+            "콜라"
+          ],
+          "groups": [
+            {
+              "label": "주스",
+              "terms": [
+                "주스"
+              ],
+              "count": null
+            },
+            {
+              "label": "콜라",
+              "terms": [
+                "콜라"
+              ],
+              "count": null
+            }
+          ],
+          "situation": null,
+          "request": "주스 3개랑 콜라 1개 1만원 이내",
+          "preferences": [],
+          "budget": {
+            "amount": 10000,
+            "mode": "max",
+            "min": null,
+            "per_item": false
+          },
+          "count": 3,
+          "again": false
+        }
+      },
+      "stopped": true
+    }
+  ]
+}
