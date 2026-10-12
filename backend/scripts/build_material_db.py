@@ -96,6 +96,13 @@ def main():
             if name in NAME19 and (name, "제조시설") not in seen:
                 seen.add((name, "제조시설"))
                 derived.append((pid, name, "제조시설", "MFDS", ""))
+    # 원물: 원재료명이 없는 원물 상품은 상품명에서 찾은 알레르겐을 연결 (출처 '원물_이름')
+    if "원물_이름_알레르겐" in cols:
+        raw_i = cols.index("원물_이름_알레르겐")
+        for row in body:
+            if row[raw_i]:
+                for name in row[raw_i].split("|"):
+                    derived.append((row[pid_i], name, "원물_이름", "MFDS", row[cols.index("product_name")]))
     cur.execute("""CREATE TABLE derived_allergens (
         product_id TEXT, allergen TEXT, 출처 TEXT, 구분 TEXT, 근거 TEXT)""")
     cur.executemany("INSERT INTO derived_allergens VALUES (?,?,?,?,?)", derived)
