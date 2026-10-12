@@ -286,16 +286,16 @@ def _ordered(candidates: list[dict]) -> list[dict]:
 
 
 def _pick_within(order: list[dict], n: int, lo: float, hi: float) -> list[dict] | None:
-    """순서대로 훑으며 n개를 고르되, 합계가 [lo, hi] 안에 들어갈 수 있을 때만 담는다. 못 채우면 None.
+    """순서(관련도·인기)를 앞에서부터 우선하며 n개를 고르되, 합계가 [lo, hi] 안에 드는 조합을 찾는다.
 
-    남은 자리를 뒤쪽 후보로 채울 수 있는지(가장 싼 k개 합 ≤ 남은 상한, 가장 비싼 k개 합 ≥ 남은 하한)를
-    미리 계산해 두고 확인하므로, 인기 순서를 최대한 지키면서 예산을 맞춘다.
+    앞 후보를 고른 뒤 나머지를 못 채우면 되돌아가서 다른 조합을 본다 (가지치기: 남은 자리의 가장 싼/비싼 합으로
+    들어갈 수 없으면 건너뜀). 탐색 노드 수에 상한을 두어 최악의 경우에도 응답이 멈추지 않게 한다.
     """
     prices = [item["price"] for item in order]
     m = len(order)
-    if m < n:
+    if m < n or n <= 0:
         return None
-    # suffix_low[i][k] / suffix_high[i][k]: i번째 뒤 후보들 중 가장 싼/비싼 k개의 합 (k ≤ n)
+    # suffix_low[i][k] / suffix_high[i][k]: i번째 뒤 후보들 중 가장 싼/비싼 k개의 합
     suffix_low = [[0.0] * (n + 1) for _ in range(m + 1)]
     suffix_high = [[0.0] * (n + 1) for _ in range(m + 1)]
     lows: list[float] = []
@@ -306,18 +306,33 @@ def _pick_within(order: list[dict], n: int, lo: float, hi: float) -> list[dict] 
             suffix_high[i + 1][k] = sum(highs[:k]) if len(highs) >= k else -INF
         lows = sorted(lows + [prices[i]])[:n]
         highs = sorted(highs + [prices[i]], reverse=True)[:n]
-    picked, spent = [], 0
-    for i, item in enumerate(order):
-        if len(picked) == n:
-            break
-        k = n - len(picked) - 1
-        after = spent + item["price"]
-        low_rest = suffix_low[i + 1][k] if k else 0
-        high_rest = suffix_high[i + 1][k] if k else 0
-        if after + low_rest <= hi and after + high_rest >= lo:
-            picked.append(item)
-            spent = after
-    return picked if len(picked) == n else None
+
+    budget_nodes = [200_000]
+    chosen: list[int] = []
+
+    def dfs(start: int, k: int, spent: float) -> bool:
+        if k == 0:
+            return lo <= spent <= hi
+        for j in range(start, m):
+            budget_nodes[0] -= 1
+            if budget_nodes[0] < 0:
+                return False
+            after = spent + prices[j]
+            # 남은 k-1개를 j+1 뒤에서 고를 수 있는지 (가장 싼/비싼 합으로 판단)
+            rest = k - 1
+            if rest and (after + suffix_low[j + 1][rest] > hi or after + suffix_high[j + 1][rest] < lo):
+                continue
+            if after > hi and rest == 0:
+                continue
+            chosen.append(j)
+            if dfs(j + 1, rest, after):
+                return True
+            chosen.pop()
+        return False
+
+    if dfs(0, n, 0):
+        return [order[j] for j in chosen]
+    return None
 
 
 def build(candidates: list[dict], count: int | None, budget=None) -> tuple[list[dict], list[str]]:

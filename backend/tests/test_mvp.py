@@ -417,7 +417,11 @@ def test_cross_only_label_is_unverified():
     assert verdict["status"] == UNVERIFIED and "같은 제조시설" in verdict["reason"]
     # 함유 표시가 함께 있거나 원재료명이 있으면 판정한다
     assert extract("", "밀, 대두 함유. " + label)["verified"] is True
-    assert extract("소맥분(밀), 정제염", label)["verified"] is True
+    # 원재료명(OCR)만으로는 확인된 것이 아니다. 함유가 검출되면 BLOCK, 검출되지 않으면 UNVERIFIED
+    ocr_only = extract("소맥분(밀), 정제염", label)
+    assert ocr_only["verified"] is False
+    assert judge({**ocr_only, "id": "x"}, ["밀"])["status"] == BLOCK
+    assert judge({**ocr_only, "id": "x"}, ["우유"])["status"] == UNVERIFIED
 
 
 def test_init_db_syncs_products_with_seed(tmp_path, monkeypatch):
@@ -691,3 +695,25 @@ def test_lookalike_words_do_not_match():
     assert _score({"name": "[파스키에] 팡오쇼콜라 (45g X 6개입)", "category": "베이커리>식빵/모닝빵/베이글"}, ["콜라"]) == 0
     assert _score({"name": "[니아르] 퓨어 콜라겐 28정", "category": "건강식품>체중관리"}, ["콜라"]) == 0
     assert _score({"name": "펩시 제로슈거 콜라 355mL", "category": "생수/음료>탄산/스포츠음료"}, ["콜라"]) >= 2
+
+
+def test_check_rejects_unknown_or_empty_profiles():
+    """잘못된 프로필로는 판정하지 않는다 (추천 API와 같은 기준)."""
+    with TestClient(app) as client:
+        user = client.post("/api/login", json={"name": "프로필검증"}).json()
+        kid = client.post(f"/api/users/{user['id']}/members", json={"name": "검증아이", "allergens": ["우유"]}).json()
+        body = {"user_id": user["id"], "product": {"id": "chk1", "name": "우유 테스트", "ingredients": "우유"}, "save": False}
+        assert client.post("/api/check", json={**body, "member_ids": [999999]}).status_code == 422
+        assert client.post("/api/check", json={**body, "member_ids": []}).status_code == 422
+        assert client.post("/api/check", json={**body, "user_id": 999999, "member_ids": [kid["id"]]}).status_code == 404
+        ok = client.post("/api/check", json={**body, "member_ids": [kid["id"]]}).json()
+        assert ok["status"] == BLOCK and ok["matched"] == ["우유"]
+
+
+def test_budget_search_backtracks_to_find_valid_combination():
+    """앞 후보를 골라 막혀도 되돌아가서 예산 안에 드는 조합을 찾는다 (1,000원은 빼고 3,000+5,000원)."""
+    from app.cart_builder import _pick_within
+    order = [{"price": p, "id": str(p)} for p in (1000, 3000, 5000, 10000)]
+    picked = _pick_within(order, 2, 6800, 9200)
+    assert picked is not None and sorted(i["price"] for i in picked) == [3000, 5000]
+    assert _pick_within(order, 2, 20000, 30000) is None

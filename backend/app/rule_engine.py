@@ -24,18 +24,17 @@ def combine_profiles(members: list[dict], extra_excluded: list[str] | None = Non
 
 def judge(product: dict, avoid: list[str], strict: bool = False) -> dict:
     """strict=True면 '혼입 가능' 표시도 BLOCK으로 본다."""
-    if not product.get("verified"):
-        reason = ("함유 성분 표시 없이 '같은 제조시설' 문구만 있어 판정할 수 없습니다. 상품 뒷면 표시 확인 필요."
-                  if product.get("cross") else "원재료·알레르기 정보가 없어 판정할 수 없습니다. 정보 확인 필요.")
-        return {"status": UNVERIFIED, "matched": [], "cross_matched": [], "reason": reason}
-
     avoid_set = set(avoid)
     matched = sorted(avoid_set & set(product.get("contains", [])))
     cross_matched = sorted(avoid_set & set(product.get("cross", [])))
 
-    if matched:
+    if matched:  # 함유 검출은 근거가 부족해도 차단 (안전 쪽)
         return {"status": BLOCK, "matched": matched, "cross_matched": cross_matched,
                 "reason": f"{', '.join(matched)} 함유"}
+    if not product.get("verified"):
+        reason = ("함유 성분 표시 없이 '같은 제조시설' 문구만 있어 판정할 수 없습니다. 상품 뒷면 표시 확인 필요."
+                  if product.get("cross") else "원재료·알레르기 정보가 없어 판정할 수 없습니다. 정보 확인 필요.")
+        return {"status": UNVERIFIED, "matched": [], "cross_matched": cross_matched, "reason": reason}
     if cross_matched and strict:
         return {"status": BLOCK, "matched": [], "cross_matched": cross_matched,
                 "reason": f"{', '.join(cross_matched)} 혼입 가능 (엄격 모드)"}

@@ -151,7 +151,14 @@ def chat(body: ChatBody):
 @app.post("/api/check")
 def check(body: CheckBody):
     """지금 보고 있는 컬리 상품을 선택한 프로필로 판정하고, 로컬 상품 DB에 저장한다."""
-    members = [m for m in db.list_members(body.user_id) if m["id"] in body.member_ids]
+    if db.get_user(body.user_id) is None:
+        raise HTTPException(404, "사용자를 찾을 수 없습니다")
+    all_members = db.list_members(body.user_id)
+    if not body.member_ids:
+        raise HTTPException(422, "판정할 프로필을 선택해 주세요")
+    if set(body.member_ids) - {m["id"] for m in all_members}:
+        raise HTTPException(422, "선택한 프로필이 이 사용자의 프로필이 아닙니다")
+    members = [m for m in all_members if m["id"] in body.member_ids]
     combined = combine_profiles(members)
     data = body.product.model_dump()
     if not data["allergy_label"].strip():

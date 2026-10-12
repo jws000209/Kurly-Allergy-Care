@@ -100,5 +100,7 @@ def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     # 라면처럼 실제 함유 성분(밀·대두 등)은 뒷면 이미지에만 있고 텍스트에는 혼입 문구만 실린 상품이 많다.
     # 이걸 '함유 없음'으로 보면 밀 알레르기에도 PASS가 되므로, 원재료명이나 '해당 없음' 표시가 없는 한 확인 필요로 둔다.
     # 단, '양고기 함유'처럼 함유 표시 문장이 있으면 표시대로 19종 함유가 없는 것으로 본다.
-    verified = bool(ingredients) or bool(contains) or stated or bool(label and _NONE_PATTERN.search(label))
+    # 원재료명(OCR)만으로는 확인된 것으로 보지 않는다: 잘리거나 일부만 읽힌 원문이 전체 성분 확인처럼 쓰이는 것을 막는다.
+    # 판정 근거는 공식 함유 표시('○○ 함유')나 '해당 없음' 표시가 있을 때만 인정한다.
+    verified = stated or bool(label and _NONE_PATTERN.search(label))
     return {"contains": sorted(contains), "cross": sorted(cross), "verified": verified}
