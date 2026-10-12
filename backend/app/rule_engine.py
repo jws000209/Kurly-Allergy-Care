@@ -3,6 +3,7 @@
 알레르기 판정은 여기서만 한다. LLM은 이 모듈의 결과를 바꾸지 못한다.
 """
 
+from .allergens import ALLERGEN_NAMES, ALLERGENS_19
 from .extractor import NO_LABEL_REVIEWED
 
 PASS = "PASS"
@@ -33,8 +34,15 @@ def judge(product: dict, avoid: list[str], strict: bool = False) -> dict:
                 "reason": f"{', '.join(matched)} 함유"}
     if not product.get("verified"):
         reason = ("함유 성분 표시 없이 '같은 제조시설' 문구만 있어 판정할 수 없습니다. 상품 뒷면 표시 확인 필요."
-                  if product.get("cross") else "원재료·알레르기 정보가 없어 판정할 수 없습니다. 정보 확인 필요.")
+                  if product.get("cross") else "원재료명과 알레르기 함유 표시가 없어 판정할 수 없습니다. 정보 확인 필요.")
         return {"status": UNVERIFIED, "matched": [], "cross_matched": cross_matched, "reason": reason}
+    if product.get("basis") == "공식표시":
+        # 공식 표시는 법정 19종만 적는다. 확장 20종은 표시가 없어도 함유를 확인할 수 없다.
+        declared = {a["name"] for a in ALLERGENS_19}
+        not_declared = sorted(a for a in avoid_set if a in ALLERGEN_NAMES and a not in declared)
+        if not_declared:
+            return {"status": UNVERIFIED, "matched": [], "cross_matched": cross_matched,
+                    "reason": f"{', '.join(not_declared)}은(는) 공식 표시 대상이 아니라 확인할 수 없습니다. 원재료 확인 필요."}
     if cross_matched and strict:
         return {"status": BLOCK, "matched": [], "cross_matched": cross_matched,
                 "reason": f"{', '.join(cross_matched)} 혼입 가능 (엄격 모드)"}

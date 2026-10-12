@@ -76,7 +76,7 @@ def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     알레르기 표시문의 '함유' 문구는 contains 계산에 함께 쓰지만, 그것만으로는 확인됨이 아니다.
     """
     if (allergy_label or "").strip() == NO_LABEL_REVIEWED and not (ingredients or "").strip():
-        return {"contains": [], "cross": [], "verified": True}
+        return {"contains": [], "cross": [], "verified": True, "basis": "원물"}
     ingredients = fix_typos((ingredients or "").strip())
     label = fix_typos((allergy_label or "").strip())
     trailing = _TRAILING.search(label)
@@ -103,5 +103,13 @@ def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     # 판정 기준은 원재료명이다. 원재료명이 없으면 판정 근거가 없으므로 확인됨이 아니다 (추천 제외).
     # 원물(원재료 없이 그 자체인 식품)은 원물 판단 표시(NO_LABEL_REVIEWED)가 있을 때 확인됨으로 본다.
     # 공식 표시의 '함유' 문구는 원재료명이 있을 때 함께 쓰는 보조 근거이며, 그것만으로는 확인됨이 아니다.
-    verified = bool((ingredients or "").strip()) or (allergy_label or "").strip().startswith(NO_LABEL_REVIEWED)
-    return {"contains": sorted(contains), "cross": sorted(cross), "verified": verified}
+    # 근거 종류(basis): 원재료명 > 원물 판단 > 공식 '함유' 표시(19종만). 셋 다 없으면 확인됨이 아니다 (추천 제외).
+    if (ingredients or "").strip():
+        basis = "원재료"
+    elif (allergy_label or "").strip().startswith(NO_LABEL_REVIEWED):
+        basis = "원물"
+    elif stated:
+        basis = "공식표시"
+    else:
+        basis = None
+    return {"contains": sorted(contains), "cross": sorted(cross), "verified": basis is not None, "basis": basis}

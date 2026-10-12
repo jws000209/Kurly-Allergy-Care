@@ -418,7 +418,7 @@ def test_cross_only_label_is_unverified():
     verdict = judge({**result, "id": "x"}, ["밀"])
     assert verdict["status"] == UNVERIFIED and "같은 제조시설" in verdict["reason"]
     # 함유 표시가 함께 있거나 원재료명이 있으면 판정한다
-    assert extract("", "밀, 대두 함유. " + label)["verified"] is False  # 표시문만으로는 확인됨이 아니다
+    assert extract("", "밀, 대두 함유. " + label)["basis"] == "공식표시"  # 함유 표시가 있으면 공식 표시 기준으로 확인됨
     assert extract("정제수", "밀, 대두 함유. " + label)["verified"] is True
     # 판정 기준은 원재료명이다. 원재료명이 있으면 확인됨: 회피 성분이 있으면 BLOCK, 없으면 PASS
     ocr_only = extract("소맥분(밀), 정제염", label)
@@ -427,7 +427,7 @@ def test_cross_only_label_is_unverified():
     assert judge({**ocr_only, "id": "x"}, ["우유"])["status"] == PASS
     # 원재료명이 없으면 확인됨이 아니므로 회피 성분이 없어도 UNVERIFIED (추천 제외)
     assert judge({**extract("", "- 우유 함유"), "id": "x"}, ["우유"])["status"] == BLOCK
-    assert judge({**extract("", "- 대두 함유"), "id": "x"}, ["우유"])["status"] == UNVERIFIED
+    assert judge({**extract("", "- 대두 함유"), "id": "x"}, ["우유"])["status"] == PASS  # 법정 19종 표시는 완전하다
 
 
 def test_init_db_syncs_products_with_seed(tmp_path, monkeypatch):
@@ -479,7 +479,7 @@ def test_non_allergen_contains_statement_and_reviewed_blank():
     from app.extractor import NO_LABEL_REVIEWED
 
     lamb = extract("", "- 양고기 함유 - 이 제품은 난류, 우유, 땅콩을 사용한 제품과 같은 제조시설에서 제조")
-    assert lamb["verified"] is False and lamb["contains"] == [] and lamb["cross"] == ["땅콩", "알류", "우유"]
+    assert lamb["verified"] is True and lamb["contains"] == [] and lamb["cross"] == ["땅콩", "알류", "우유"]
     assert extract("", "- 산양유 함유")["contains"] == ["우유"]
     # 괄호 안의 '포함'은 함유 표시가 아니다 (제조시설 문구만 있는 상품은 계속 판정 불가)
     assert extract("", "이 제품은 조개류(굴, 전복, 홍합 포함)를 사용한 제품과 같은 제조시설")["verified"] is False
@@ -723,3 +723,18 @@ def test_budget_search_backtracks_to_find_valid_combination():
     picked = _pick_within(order, 2, 6800, 9200)
     assert picked is not None and sorted(i["price"] for i in picked) == [3000, 5000]
     assert _pick_within(order, 2, 20000, 30000) is None
+
+
+def test_official_table_basis_when_no_ingredients():
+    """원재료명이 없으면 공식 함유 표시로 판정한다. 법정 19종만 확인되고, 확장 20종은 확인 불가다."""
+    official = extract("", "- 우유 함유 - 이 제품은 땅콩을 사용한 제품과 같은 제조시설에서 제조")
+    assert official["basis"] == "공식표시" and official["contains"] == ["우유"]
+    assert judge({**official, "id": "a"}, ["우유"])["status"] == BLOCK
+    assert judge({**official, "id": "b"}, ["대두"])["status"] == PASS
+    assert judge({**official, "id": "c"}, ["사과"])["status"] == UNVERIFIED  # 확장 20종은 표시 대상이 아님
+    # 제조시설 문구만 있으면 근거가 없다 (제외)
+    facility_only = extract("", "메밀, 땅콩을 사용한 제품과 같은 제조시설에서 제조하고 있습니다.")
+    assert facility_only["basis"] is None
+    assert judge({**facility_only, "id": "d"}, ["대두"])["status"] == UNVERIFIED
+    # 원재료명이 있으면 원재료명 기준
+    assert extract("정제수, 설탕", "- 우유 함유")["basis"] == "원재료"
