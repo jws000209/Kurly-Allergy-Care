@@ -1,7 +1,7 @@
 """원재료명 정제: 직접 판독 결과 우선, 나머지는 OCR 잡음 제거 + 오탈자 교정. 추천 확인용 데이터.
 
 입력: kurly_products_v2_material_facility.csv (원재료명 = 끝에서 두 번째 열, 헤더가 깨져 위치로 읽는다)
-직접 판독: 알레르기판독_파트1/work/vision_part1.jsonl, 알레르기 파트 모으기/vision_part4.jsonl
+직접 판독: 알레르기판독_파트1/work/vision_part1.jsonl, 알레르기 파트 모으기/vision_part2.json, vision_part4.jsonl (파트 3 없음)
 출력 (마켓컬리 데이터/):
   kurly_products_v2_material_facility_clean.csv  원재료명_정제·원재료명_출처·원재료명_삭제사유 열 추가
   원재료명_정제_로그.csv                           바뀐 항목 전체 (검토용)
@@ -37,6 +37,7 @@ OUT = DATA / "kurly_products_v2_material_facility_clean.csv"
 LOG = DATA / "원재료명_정제_로그.csv"
 VISION = [
     ROOT / "마켓컬리 데이터" / "알레르기판독_파트1" / "work" / "vision_part1.jsonl",
+    DATA / "알레르기 파트 모으기" / "vision_part2.json",  # 파트 2 (JSON 배열)
     DATA / "알레르기 파트 모으기" / "vision_part4.jsonl",
 ]
 
@@ -80,8 +81,11 @@ def load_vision():
     import json
     best = {}
     for path in VISION:
-        for line in open(path, encoding="utf-8"):
-            r = json.loads(line)
+        if path.suffix == ".json":
+            records = json.load(open(path, encoding="utf-8"))
+        else:
+            records = [json.loads(line) for line in open(path, encoding="utf-8")]
+        for r in records:
             pid = r["file"].split("/")[1]
             name = r.get("원재료명")
             score = (0 if r.get("판독불가") else 1, len(name or ""))
@@ -174,11 +178,11 @@ def main():
         stats[src] += 1
         out_rows.append(r[:raw_i] + [cleaned, raw, src, reason, ";".join(changes), r[raw_i + 1]])
     out_header = base + ["원재료명_정제", "원재료명_원본", "원재료명_출처", "원재료명_삭제사유", "원재료명_교정"] + [header[-1]]
-    with open(OUT, "w", encoding="utf-8", newline="") as f:
+    with open(OUT, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(out_header)
         w.writerows(out_rows)
-    with open(LOG, "w", encoding="utf-8", newline="") as f:
+    with open(LOG, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(["product_id", "출처", "원본", "정제", "교정"])
         w.writerows(log)
