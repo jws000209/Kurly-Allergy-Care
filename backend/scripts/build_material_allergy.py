@@ -1,9 +1,11 @@
 """재료 기반 알레르기 열 만들기 (추천 알고리즘 확인용 데이터, 판정 아님)
 
-- 원재료명: 알레르겐_원재료_매칭사전_v1.xlsx 의 자동매칭 Y + 신뢰등급 A 행만 배정한다.
+- 원재료명: 알레르겐_원재료_매칭사전_v1.xlsx 의 39종 전체에서 자동매칭 Y + 신뢰등급 A 행만 배정한다.
   B/C 등급이나 자동매칭 N 행에 걸린 것은 배정하지 않고 '검토후보'로만 남긴다.
-- 제조시설: 입력 CSV의 제조시설 열(이미 19종 표준명)을 그대로 쓴다.
-- 확장 20종(구분 EXPANDED)은 한국 표시 의무 대상이 아니므로 별도 열에 둔다.
+- 제조시설: 입력 CSV의 제조시설 열은 라벨 OCR이 19종으로 뽑은 값이라 19종만 들어 있다.
+  39종으로 늘리려면 라벨 OCR을 다시 돌려야 한다.
+- 확장 20종(구분 EXPANDED)도 같은 열에 함께 넣는다. 한국 표시 의무 대상은 19종뿐이므로
+  kurly 함유 문구와 대조할 때는 19종만 비교한다.
 - 알레르기 판정은 Rule Engine이 한다. 이 파일은 데이터 구축용이다.
 
 사용: python build_material_allergy.py [입력CSV] [출력CSV] [원본 kurly_products_v2.csv]
@@ -85,16 +87,14 @@ def main(src=None, out=None, orig=None):
     df = pd.read_csv(src, dtype={"product_id": str}, encoding="utf-8")
     raw_col, fac_col = df.columns[-2], df.columns[-1]  # 원재료명, 제조시설 (헤더 깨짐 → 위치)
 
-    res = {k: [] for k in ["원재료_알레르기", "원재료_확장", "원재료_검토후보", "원재료_상태",
+    res = {k: [] for k in ["원재료_알레르기", "원재료_검토후보", "원재료_상태",
                            "시설_알레르기", "시설_상태", "검토필요", "매칭근거"]}
     for raw, fac in zip(df[raw_col], df[fac_col]):
         hits = match(raw, rules) if pd.notna(raw) else set()
-        auto19 = sorted({n for n, k, a, _ in hits if a and k == "MFDS"})
-        autox = sorted({n for n, k, a, _ in hits if a and k == "EXPANDED"})
-        review = sorted({n for n, k, a, _ in hits if not a} - set(auto19) - set(autox))
+        auto = sorted({n for n, k, a, _ in hits if a})
+        review = sorted({n for n, k, a, _ in hits if not a} - set(auto))
         ev = sorted({f"{t}→{n}" for n, k, a, t in hits if a})
-        res["원재료_알레르기"].append("|".join(auto19))
-        res["원재료_확장"].append("|".join(autox))
+        res["원재료_알레르기"].append("|".join(auto))
         res["원재료_검토후보"].append("|".join(review))
         res["원재료_상태"].append("정보없음" if pd.isna(raw) else "있음")
         if pd.isna(fac):
@@ -119,9 +119,9 @@ def main(src=None, out=None, orig=None):
 
 
 def check(df, orig_path):
-    """kurly 공식 allergy_info 의 '함유' 문구와 대조해 원재료 기반 열의 품질을 본다.
+    """kurly 공식 allergy_info 의 '함유' 문구(19종)와 대조해 원재료 기반 열의 품질을 본다.
 
-    원재료명이 있고 allergy_info 가 있는 상품만 비교한다 (원재료가 없으면 비교 불가).
+    원재료명이 있고 allergy_info 가 있는 상품만 비교한다. 열에서는 19종만 비교한다.
     """
     o = pd.read_csv(orig_path, dtype={"product_id": str}, encoding="utf-8")
     o = o[["product_id", "allergy_info"]].rename(columns={"allergy_info": "_ai"})
@@ -130,7 +130,7 @@ def check(df, orig_path):
     tp = fp = fn = 0
     for info, mine in zip(m["_ai"], m["원재료_알레르기"]):
         ham = {x for line in str(info).splitlines() if "함유" in line for x in NAME19 if x in line}
-        ours = set(str(mine).split("|")) - {"", "nan"}
+        ours = (set(str(mine).split("|")) - {"", "nan"}) & NAME19  # kurly 표시는 19종뿐
         tp += len(ham & ours); fp += len(ours - ham); fn += len(ham - ours)
     p = tp / (tp + fp) if tp + fp else 0
     r = tp / (tp + fn) if tp + fn else 0
