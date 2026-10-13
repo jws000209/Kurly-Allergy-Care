@@ -6,6 +6,7 @@ LLM은 parse_intent(조건 구조화), answer(일반 질문 응답), 그리고 �
 Rule Engine을 통과한 후보 안에서 고르기(selector)에 쓰인다.
 장바구니에 담기는 상품은 항상 Rule Engine을 거치고, 수정 후에도 전체를 재검증한다.
 """
+import functools
 import re
 from typing import TypedDict
 
@@ -46,6 +47,8 @@ class CartState(TypedDict, total=False):
     notes_after: list[str]  # 추천 목록 아래에 붙일 안내 (예: '통과한 상품이 3개뿐이라 5개를 채우지 못했어요')
     history: list[dict]  # 이전 대화 [{user, bot, asked}] — LLM이 '그거'·되물음의 답을 이해하는 데만 쓴다
     shown: dict  # 같은 대화에서 요청(종류·상황)별로 이미 보여 준 상품 id — 다시 요청하면 새 상품을 먼저 보여 준다
+    workflow: list[str]  # 이번 턴에 지나간 노드 순서 (디버깅·테스트용, 화면에는 쓰지 않는다)
+    next_node: str  # 슈퍼바이저가 고른 다음 노드
 
 
 def parse_intent(state: CartState) -> dict:
@@ -127,6 +130,11 @@ def _budget_of(intent: dict) -> dict | None:
         mode = "range"
     return {"amount": intent["budget"], "mode": mode, "min": low if mode == "range" else None,
             "per_item": bool(intent.get("per_item"))}
+
+
+def supervisor(state: CartState) -> dict:
+    """관리자 노드: 다음 작업을 정한다. 분기 규칙은 route()에 그대로 둔다 (규칙을 바꾸지 않음)."""
+    return {"next_node": route(state)}
 
 
 def route(state: CartState) -> str:
@@ -363,14 +371,26 @@ def remember(state: CartState) -> dict:
     return {"history": (state.get("history", []) + [turn])[-HISTORY_KEEP:]}
 
 
+def tracked(fn):
+    """노드가 끝날 때 이름을 workflow에 남긴다. parse_intent는 턴의 시작이므로 기록을 비운다."""
+    @functools.wraps(fn)
+    def node(state: CartState) -> dict:
+        base = [] if fn.__name__ == "parse_intent" else state.get("workflow", [])
+        out = fn({**state, "workflow": base})
+        return {**out, "workflow": base + [fn.__name__]}
+    return node
+
+
 def build_graph():
     graph = StateGraph(CartState)
     for node in (parse_intent, resolve_conditions, ask_profile, build_cart, edit_cart, revalidate, respond, answer,
                  remember):
-        graph.add_node(node.__name__, node)
+        graph.add_node(node.__name__, tracked(node))
+    graph.add_node("supervisor", tracked(supervisor))
     graph.add_edge(START, "parse_intent")
     graph.add_edge("parse_intent", "resolve_conditions")
-    graph.add_conditional_edges("resolve_conditions", route,
+    graph.add_edge("resolve_conditions", "supervisor")
+    graph.add_conditional_edges("supervisor", lambda s: s["next_node"],
                                 ["answer", "ask_profile", "edit_cart", "build_cart"])
     graph.add_edge("build_cart", "revalidate")
     graph.add_edge("edit_cart", "revalidate")
@@ -395,4 +415,4 @@ def chat(user_id: int, thread_id: str, message: str, selected_member_ids: list[i
             "parser": state["parser"], "llm": intent_parser.last_model or intent_parser.llm_model_name(),
             "picked_by": (state.get("stats") or {}).get("picked_by"),
             "notes_after": [] if state.get("asked") else state.get("notes_after", []),
-            "constraints": state.get("constraints", {})}
+            "constraints": state.get("constraints", {}), "workflow": state.get("workflow", [])}
