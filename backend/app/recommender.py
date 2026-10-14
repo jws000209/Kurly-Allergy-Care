@@ -138,7 +138,7 @@ def personalize(candidates: list[dict], products: list[dict], interactions: list
         seen.add(reference_product_id)
     items = [{**item, **scores[item["id"]]} for item in candidates if item["id"] not in seen]
     # 요청 관련도·상황·옵션을 먼저 유지하고, 그 안에서 취향 점수로 순서를 정한다.
-    items.sort(key=lambda item: (-item.get("score", 0), not item.get("preferred", False),
+    items.sort(key=lambda item: (-item.get("score", 0), item.get("situation_disfavored", False), not item.get("preferred", False),
                                 item.get("needs_option", False), item.get("source") == "mock",
                                 -item["recommendation_score"],
                                 -(item.get("review_count") if item.get("review_count") is not None else -1),

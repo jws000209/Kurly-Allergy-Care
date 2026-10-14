@@ -59,8 +59,7 @@ def main() -> int:
         print(f"      규칙: {short(intent._clean(rule_result))}\n")
 
     if failures:
-        print(f"{failures}개 문장을 확인해 주세요. 호출 실패가 '429'/'RESOURCE_EXHAUSTED'면 무료 한도 초과입니다 —"
-              " 잠시 뒤 다시 하거나 LLM_MODEL=google_genai:gemini-flash-lite-latest 로 바꿔 보세요.")
+        print(f"{failures}개 문장을 확인해 주세요. OpenAI 키·모델 접근 권한·사용 한도를 확인하세요.")
     else:
         print("모든 문장이 LLM(LangChain) 경로로 해석됐습니다.")
     return 1 if failures else 0

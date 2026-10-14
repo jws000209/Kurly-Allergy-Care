@@ -35,9 +35,9 @@ CHILD_SINGULAR = ["아이", "애기", "아기", "꼬마"]
 CHILD_PLURAL = ["아이들", "애들", "아이둘", "아이셋"]
 # 여러 명을 묶어 부르는 말 → 해당하는 프로필을 모두 대상으로 (알레르기는 합집합). 되묻지 않는다.
 GROUP_WORDS = {
-    "children": ["자식", "자식들", "자녀", "자녀들", "애들", "아이들", "아이둘", "아이셋", "애기들", "꼬맹이들"],
-    "아들": ["아들들"],
-    "딸": ["딸들"],
+    "children": ["아이", "우리애", "우리 애", "형제", "남매", "자식", "자식들", "자녀", "자녀들", "애들", "아이들", "아이둘", "아이셋"],
+    "아들": ["아들", "아들들"],
+    "딸": ["딸", "딸들"],
     "parents": ["부모", "부모님", "엄마아빠", "아빠엄마", "엄빠"],
     "grandparents": ["조부모", "조부모님", "할머니할아버지", "할아버지할머니", "할부모"],
     "all": ["가족", "가족들", "온가족", "우리가족", "식구", "식구들", "다같이", "모두", "다들"],
@@ -53,7 +53,7 @@ def relation_of(member: dict) -> str:
         return member["relation"]
     name = nospace(member.get("name", ""))
     for relation, words in RELATION_WORDS.items():
-        if any((w in name) if len(w) >= 2 or w == "딸" else w == name for w in words):
+        if any(name == w or any(name == order + w for order in ORDERS) for w in words):
             return relation
     return ""
 
@@ -98,8 +98,14 @@ def nospace(text: str) -> str:
 def variants(text: str) -> list[str]:
     """비교용 형태: 띄어쓰기를 없앤 원형과, 끝 조사를 뗀 형태 ('큰애랑' → '큰애랑', '큰애')."""
     word = nospace(text)
-    stripped = _PARTICLES.sub("", word)
-    return [word, stripped] if stripped and stripped != word else [word]
+    out = [word]
+    for _ in range(3):
+        stripped = re.sub(r"만$", "", _PARTICLES.sub("", word))
+        if not stripped or stripped == word:
+            break
+        out.append(stripped)
+        word = stripped
+    return out
 
 
 def auto_aliases(name: str, relation: str = "", order: str = "") -> list[str]:
@@ -127,7 +133,7 @@ def member_aliases(member: dict) -> list[str]:
 
 
 def _is_child(member: dict) -> bool:
-    return relation_of(member) in CHILD_RELATIONS or bool(order_of(member))
+    return relation_of(member) in CHILD_RELATIONS
 
 
 def resolve(mentions: list[str], members: list[dict]) -> dict:
@@ -140,7 +146,7 @@ def resolve(mentions: list[str], members: list[dict]) -> dict:
     for mention in dict.fromkeys(m for m in mentions if m and m.strip()):
         keys = variants(mention)
         # 묶어 부르는 말('자식들', '부모님', '가족')과 복수형('딸들')은 해당 프로필 모두를 대상으로 한다
-        word = _PARTICLES_KEEP_PLURAL.sub("", nospace(mention))
+        word = re.sub(r"만$", "", _PARTICLES_KEEP_PLURAL.sub("", nospace(mention)))
         group = next((g for g, words in GROUP_WORDS.items() if word in words or nospace(mention) in words), None)
         if group:
             group_hits = _group_members(group, members)
@@ -149,7 +155,17 @@ def resolve(mentions: list[str], members: list[dict]) -> dict:
             group_hits = [m for m in members if base in {nospace(a) for a in member_aliases(m)}]
         else:
             group_hits = []
+        if group in {"children", "아들", "딸"}:
+            uncertain = [m for m in members if not relation_of(m) and order_of(m)]
+            if uncertain:
+                result["ambiguous"].append((mention, group_hits + uncertain))
+                continue
         if group_hits:
+            collisions = [m for m in members if nospace(m["name"]) in keys or
+                          set(keys) & {nospace(a) for a in m.get("aliases", [])}]
+            if collisions and {m["id"] for m in collisions} != {m["id"] for m in group_hits}:
+                result["ambiguous"].append((mention, list({m["id"]: m for m in collisions + group_hits}.values())))
+                continue
             result["matched"].extend((mention, m, "group") for m in group_hits)
             continue
         by_name = [m for m in members if nospace(m["name"]) in keys]
@@ -160,7 +176,9 @@ def resolve(mentions: list[str], members: list[dict]) -> dict:
         children = [m for m in members if _is_child(m)]
         if not hits and set(keys) & set(CHILD_SINGULAR):
             hits = children
-        if len(hits) == 1:
+        if set(keys) & set(CHILD_SINGULAR) and len(children) > 1 and word not in GROUP_WORDS["children"]:
+            result["ambiguous"].append((mention, children))
+        elif len(hits) == 1:
             result["matched"].append((mention, hits[0], "alias"))
         elif len(hits) > 1:
             result["ambiguous"].append((mention, hits))
@@ -173,7 +191,46 @@ def mention_vocabulary(members: list[dict]) -> list[str]:
     """규칙 파서가 문장에서 사람 표현을 찾을 때 쓰는 낱말 (긴 것부터)."""
     words = {a for m in members for a in member_aliases(m) if len(nospace(a)) >= 2 or a == m["name"]}
     words |= set(GENERIC_PERSON_WORDS)
+    words.add("나")
     return sorted(words, key=len, reverse=True)
+
+
+def resolve_scope(message, extracted, members, excluded=None):
+    """Separate include/exclude/count semantics before choosing profile IDs."""
+    from .intent import _find_mentions
+    raw, _ = _find_mentions(message, mention_vocabulary(members))
+    exclusions = list(excluded or [])
+    issues = []
+    if any(nospace(word) not in nospace(message) for word in exclusions):
+        issues.append("제외 대상의 원문 표현을 확인할 수 없어요. 정확한 대상 이름을 알려 주세요.")
+    for alias in mention_vocabulary(members):
+        pattern = re.escape(alias).replace(r"\ ", r"\s*")
+        if re.search(r"(?<![가-힣A-Za-z])" + pattern + r"(?:는|은|만)?\s*(?:빼고|제외하고|제외한|제외)", message):
+            exclusions.append(alias)
+    includes = list(dict.fromkeys(list(extracted) + raw))
+    includes = [w for w in includes if not any(set(variants(w)) & set(variants(e)) for e in exclusions)]
+    count_match = re.search(r"(?P<group>아이들?|자녀|우리\s*애|아들들?|딸들?)\s*(?P<count>\d+|한|두|세|둘|셋)(?!\d|\s*(?:개|가지|종류|원))\s*(?:명)?", message)
+    expected = None
+    if count_match:
+        number = count_match.group("count")
+        expected = int(number) if number.isdigit() else {"한": 1, "두": 2, "둘": 2, "세": 3, "셋": 3}[number]
+        if not includes:
+            includes = [count_match.group("group")]
+    resolved = resolve(includes, members)
+    removed = resolve(list(dict.fromkeys(exclusions)), members)
+    resolved["ambiguous"].extend(removed["ambiguous"])
+    resolved["unknown"].extend(removed["unknown"])
+    remove_ids = {m["id"] for _, m, _ in removed["matched"]}
+    resolved["matched"] = [(w, m, how) for w, m, how in resolved["matched"] if m["id"] not in remove_ids]
+    ids = {m["id"] for _, m, _ in resolved["matched"]}
+    if exclusions and not includes:
+        issues.append("제외할 사람 외에 누구를 대상으로 할지 알려 주세요.")
+    if expected is not None and len(ids) != expected:
+        issues.append(f"요청 인원은 {expected}명이지만 연결된 대상은 {len(ids)}명이에요. 정확한 프로필 이름을 알려 주세요.")
+    if includes and not ids and not resolved["unknown"] and not resolved["ambiguous"]:
+        issues.append("제외 조건을 적용한 뒤 대상이 없어요. 대상 프로필을 다시 알려 주세요.")
+    return resolved, {"include_mentions": includes, "exclude_mentions": exclusions, "expected_count": expected,
+                      "only": "만" in message, "issues": issues}
 
 
 def ask_message(resolved: dict, members: list[dict]) -> str | None:

@@ -14,7 +14,8 @@ OUT_DIR = ROOT / "colab"
 ZIP_PATH = OUT_DIR / "kac_backend.zip"
 NB_PATH = OUT_DIR / "KurlyAllergyCare_LangChain_Colab.ipynb"
 
-INCLUDE = ["backend/app/*.py", "backend/data/kurly_products_material.json", "backend/scripts/check_llm.py",
+INCLUDE = ["backend/app/*.py", "backend/data/kurly_products_material.json", "backend/scripts/check_llm.py", "backend/scripts/dry_run*.py",
+           "data/알레르겐_원재료_매칭사전_v1*.xlsx",
            "backend/tests/*.py", "backend/tests/mock_products.json", "backend/requirements.txt"]
 
 
@@ -24,7 +25,7 @@ def make_zip() -> None:
             for path in sorted(ROOT.glob(pattern)):
                 zf.write(path, path.relative_to(ROOT).as_posix())
     names = zipfile.ZipFile(ZIP_PATH).namelist()
-    assert not any(n.endswith(".env") or n.endswith(".sqlite3") for n in names)
+    assert not any(n.endswith(".env") or n.endswith(".sqlite3") or n.endswith(".openai_api_key") for n in names)
     print(f"{ZIP_PATH.name}: {len(names)}개 파일")
 
 
@@ -48,10 +49,10 @@ CELLS = [
 
 | 역할 | 담당 |
 |---|---|
-| 자연어 요청 → 조건(대상 프로필·제외 성분·상품 유형·예산·개수) 구조화 | **LLM** (LangChain Structured Output, Gemini 무료 API) |
+| 자연어 요청 → 조건(대상 프로필·제외 성분·상품 유형·예산·개수) 구조화 | **GPT-6 Luna** (LangChain Structured Output) |
 | 대화 상태·흐름 제어 (생성 → 수정 → 재검증) | **LangGraph** |
-| 알레르기 판정 (PASS / BLOCK / UNVERIFIED) | **Rule Engine** (19종 알레르겐 사전, LLM이 관여하지 않음) |
-| 상품 데이터 | 팀이 수집한 컬리 상품 4,062개 (13개 대분류) |
+| 알레르기 판정 (PASS / BLOCK / UNVERIFIED) | **로컬 XLSX 검색 + GPT RAG + 보호 규칙** (39종) |
+| 상품 데이터 | 팀이 수집한 컬리 상품 시드 |
 | 개인화 추천 | 아이템 기반 협업 필터링 + 함께 구매한 상품 추천 + TF-IDF 콘텐츠 추천 |
 
 추천 API의 `mode=item`은 예시와 같은 아이템 기반 협업 필터링입니다.
@@ -59,15 +60,15 @@ CELLS = [
 구매 기반 추천은 `purchase` 행동 이력이 있어야 하며, 조회·장바구니 행동을 구매로 취급하지 않습니다.
 `content`는 콘텐츠 유사도, 기본 `hybrid`는 세 방식을 혼합합니다.
 
-알레르기 판정은 현재 19종 Rule Engine입니다. 제공된 XLSX 39종 사전과 생성형 AI + RAG 판정은 후속 구현 대상이며 이 ZIP에 사전은 포함하지 않습니다.
+한영통합 XLSX 사전과 예외 규칙을 검색하고 최종 검토를 GPT에 요청합니다. 정책 누락·수동검토·호출 실패는 UNVERIFIED입니다. 이 ZIP에 사전을 포함하며 API 키는 포함하지 않습니다.
 
 **준비물**
 1. `kac_backend.zip` (이 노트북과 같은 `colab` 폴더에 있음)
-2. Gemini API 키 — 왼쪽 🔑(보안 비밀) 메뉴에 이름 `GOOGLE_API_KEY` 로 저장하고 *노트북 액세스*를 켜 주세요. 없으면 실행 중에 입력창이 뜹니다.
+2. OpenAI API 키 — 왼쪽 🔑(보안 비밀) 메뉴에 이름 `OPENAI_API_KEY` 로 저장하고 *노트북 액세스*를 켜 주세요. 없으면 실행 중에 입력창이 뜹니다.
 """),
     md("## 1. 패키지 설치"),
     code("""
-%pip install -q langchain langgraph langchain-google-genai langchain-groq python-dotenv fastapi httpx pytest pandas
+%pip install -q langchain langgraph langchain-openai openpyxl python-dotenv fastapi httpx pytest pandas
 """),
     md("## 2. 백엔드 코드·데이터 불러오기\n`kac_backend.zip` 을 업로드합니다 (이미 `/content` 에 있으면 건너뜀)."),
     code("""
@@ -95,7 +96,7 @@ if os.path.exists(os.environ["KAC_DB_PATH"]):
     os.remove(os.environ["KAC_DB_PATH"])
 print("작업 폴더:", os.getcwd())
 """),
-    md("## 3. Gemini API 키 설정\n키 값은 출력하지 않습니다."),
+    md("## 3. OpenAI GPT API 키 설정\n키 값은 출력하지 않습니다."),
     code("""
 import getpass
 
@@ -103,17 +104,18 @@ key = None
 if IN_COLAB:
     try:
         from google.colab import userdata
-        key = userdata.get("GOOGLE_API_KEY")
+        key = userdata.get("OPENAI_API_KEY")
     except Exception:
         key = None
 else:  # 로컬에서 노트북을 돌릴 때는 backend/.env 를 읽는다
     from dotenv import load_dotenv
     load_dotenv(os.path.join(os.path.dirname(os.path.abspath(ZIP)), "..", "backend", ".env"))
-    key = os.getenv("GOOGLE_API_KEY")
+    key = os.getenv("OPENAI_API_KEY")
 if not key:
-    key = getpass.getpass("GOOGLE_API_KEY 입력: ")
-os.environ["GOOGLE_API_KEY"] = key
-print("키 설정 완료 (길이", len(key), ")")
+    key = getpass.getpass("OPENAI_API_KEY 입력: ")
+os.environ["OPENAI_API_KEY"] = key
+os.environ["LLM_MODEL"] = "openai:gpt-6-luna"
+print("키 설정 완료")
 """),
     md("## 4. 상품 DB 준비"),
     code("""

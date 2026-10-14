@@ -7,6 +7,7 @@ import re
 
 from . import db, recommender
 from .rule_engine import BLOCK, PASS, UNVERIFIED, judge
+from .presentation import verdict_reason
 
 DEFAULT_COUNT = 5
 
@@ -53,6 +54,11 @@ PART_SYNONYMS = {
 # 요청 낱말을 품었지만 다른 상품인 말 ('콜라' 요청에 '쇼콜라'·'콜라겐'·'콜라비'가 걸리지 않게, 10/07 실제 화면)
 LOOKALIKE = {
     "콜라": ["쇼콜라", "콜라겐", "콜라비"],
+}
+
+# 사용자가 쓰는 말 → 상품명에 실제로 쓰이는 말 (DB에 그 상품이 있을 때만 넣는다, 10/14 확인)
+SEARCH_ALIAS = {
+    "훠궈소스": "마라탕소스", "마라소스": "마라탕소스", "오뎅": "어묵", "토르티야": "또띠아",
 }
 
 # 상품명의 마지막 낱말(무엇인지 나타내는 말)을 찾을 때 건너뛰는 말
@@ -148,7 +154,7 @@ def to_item(product: dict, verdict: dict) -> dict:
         "id": product["id"], "name": product["name"], "price": unit * min_ea, "unit_price": unit, "min_ea": min_ea,
         "review_count": product.get("review_count"), "sales_rank": product.get("sales_rank"),
         "category": product["category"], "url": product["url"], "image": product["image"],
-        "source": product["source"], "status": verdict["status"], "reason": verdict["reason"],
+        "source": product["source"], "status": verdict["status"], "reason": verdict_reason(verdict),
         "cross_matched": verdict["cross_matched"], "last_checked_at": product["last_checked_at"],
         "needs_option": bool(_OPTION_PATTERN.search(product["name"])),
     }
@@ -159,14 +165,15 @@ def to_item(product: dict, verdict: dict) -> dict:
 def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[str] | None = None,
            cheap_first: bool = False, min_score: int = 1, situation: dict | None = None,
            user_id: int | None = None) -> tuple[list[dict], dict]:
-    """요청에 맞는 상품을 Rule Engine으로 걸러 PASS 후보만 순위대로 돌려준다.
+    """요청에 맞는 상품을 판정 제공자의 로컬 게이트로 걸러 후보를 돌려준다.
 
     순서: 관련도(요청 낱말 일치) → 상황 우선 낱말 → 후기 수 → 판매량 순위. 가격은 순서에 쓰지 않는다
     ('더 저렴하게'처럼 cheap_first일 때만 가격순). 예산은 cart_builder.build가 따로 맞춘다.
-    situation(소풍 등)이 있으면 제외 낱말이 든 상품은 빼고, 우선 낱말이 든 상품은 같은 관련도 안에서 앞에 둔다.
+    situation(소풍 등)의 감점·우선 낱말은 같은 관련도 안에서 순위에 반영하며 후보를 삭제하지 않는다.
     이것은 취향 조건일 뿐이고, 알레르기 판정(judge)은 상황과 무관하게 똑같이 한다.
     """
     exclude_ids = exclude_ids or set()
+    terms = [SEARCH_ALIAS.get(t, t) for t in terms]
     prefer = (situation or {}).get("prefer", [])
     avoid_words = (situation or {}).get("avoid", [])
     stats = {"matched": 0, "situation_excluded": 0, PASS: 0, BLOCK: 0, UNVERIFIED: 0}
@@ -177,14 +184,13 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
         if (terms and score < min_score) or product["id"] in exclude_ids:
             continue
         stats["matched"] += 1
-        if avoid_words and any(w in product["name"] for w in avoid_words):
-            stats["situation_excluded"] += 1
-            continue
+        disfavored = any(len(w) >= 2 and w in product["name"] for w in avoid_words)
         preferred = bool(prefer) and any(w in product["name"] for w in prefer)
-        verdict = judge(product, avoid, strict)
+        verdict = judge(product, avoid, strict, generate=False)
         stats[verdict["status"]] += 1
         if verdict["status"] == PASS:
-            ranked.append((score, {**to_item(product, verdict), "score": score, "preferred": preferred}))
+            ranked.append((score, {**to_item(product, verdict), "score": score, "preferred": preferred,
+                                   "situation_disfavored": disfavored}))
     # '피자'·'만두'처럼 구체적인 종류를 말했고 그와 분명히 맞는 상품(상품명·단일 소분류)이 있으면,
     # 약하게만 맞는 상품(같은 묶음 분류 '치킨/피자/핫도그/만두'의 만두 등)으로 빈자리를 채우지 않는다.
     # '간식'·'야식'·'점심'처럼 범위가 넓은 목적어는 여러 분류에서 채우는 게 맞으므로 그대로 둔다.
@@ -195,7 +201,7 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
         ranked.sort(key=lambda pair: (pair[1]["needs_option"], pair[1]["price"], -pair[0]))
     else:
         # 바로 담을 수 있는 상품(옵션 없음·실제 컬리 상품)을 같은 조건이면 먼저 둔다
-        ranked.sort(key=lambda pair: (-pair[0], not pair[1]["preferred"], pair[1]["needs_option"],
+        ranked.sort(key=lambda pair: (-pair[0], pair[1]["situation_disfavored"], not pair[1]["preferred"], pair[1]["needs_option"],
                                       pair[1]["source"] == "mock", *_popularity(pair[1])))
     items = [item for _, item in ranked]
     if user_id is not None and not cheap_first:
@@ -206,7 +212,7 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
 def missing_terms(terms: list[str]) -> list[str]:
     """상품 DB에 하나도 맞는 상품이 없는 낱말 (예: 과자 데이터를 수집하지 않았으면 '과자')."""
     products = db.list_products()
-    return [t for t in terms if not any(_score(p, [t]) > 0 for p in products)]
+    return [t for t in terms if not any(_score(p, [SEARCH_ALIAS.get(t, t)]) > 0 for p in products)]
 
 
 def catalog_categories() -> list[str]:
@@ -372,8 +378,8 @@ def _budget_note(b: dict, got: int, pool: list[dict]) -> str:
     return f"{cond} 조건에 맞는 상품이 없어요. (조건을 통과한 상품 중 가장 싼 상품: {min(prices):,}원)"
 
 
-def revalidate(cart: list[dict], avoid: list[str], strict: bool) -> tuple[list[dict], list[str]]:
-    """장바구니의 모든 상품을 Rule Engine으로 다시 검증하고, PASS가 아니면 뺀다."""
+def revalidate(cart: list[dict], avoid: list[str], strict: bool, *, diagnostics=None) -> tuple[list[dict], list[str]]:
+    """최종 RAG 검토를 포함해 재검증하고, PASS가 아니면 뺀다."""
     kept, notes = [], []
     for item in cart:
         product = db.get_product(item["id"])
@@ -381,8 +387,12 @@ def revalidate(cart: list[dict], avoid: list[str], strict: bool) -> tuple[list[d
             notes.append(f"'{item['name']}'은(는) 상품 DB에서 찾을 수 없어 제외했어요.")
             continue
         verdict = judge(product, avoid, strict)
+        if diagnostics is not None:
+            diagnostics.append({"id": item["id"], "name": item["name"], "verdict": verdict})
         if verdict["status"] == PASS:
             kept.append({**item, **to_item(product, verdict)})  # 묶음 이름 등 붙어 있던 정보는 유지
         else:
-            notes.append(f"재검증에서 '{item['name']}' 제외: {verdict['reason']}")
+            matched = verdict.get("matched") or verdict.get("cross_matched") or []
+            reason = (", ".join(matched) + (" 혼입 가능 표시가 있어" if verdict.get("cross_matched") and not verdict.get("matched") else " 함유 표시가 있어")) if verdict["status"] == BLOCK and matched else "성분 정보를 충분히 확인할 수 없어"
+            notes.append(f"'{item['name']}'은(는) {reason} 추천에서 제외했어요.")
     return kept, notes

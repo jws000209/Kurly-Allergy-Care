@@ -1,11 +1,12 @@
 """Shopping Intent Parser: 자연어 요청 → 구조화 조건.
 
-LLM(LangChain Structured Output)이 조건만 구조화한다. 알레르기 판정은 하지 않는다.
+GPT(LangChain Structured Output)가 조건만 구조화한다. 알레르기 판정은 별도 RAG 제공자가 한다.
 API 키가 없거나 호출이 실패하면 규칙 기반 파서로 대체해 시연이 끊기지 않게 한다.
 """
 import logging
 import os
 import re
+from pathlib import Path
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -26,7 +27,7 @@ class ItemGroup(BaseModel):
 
     label: str = Field(description="묶음 이름. 사용자가 쓴 말 그대로. 예: 점심, 과자")
     keywords: list[str] = Field(default_factory=list, description="이 묶음에서 찾을 상품 낱말. 예: ['과자']")
-    count: int | None = Field(default=None, description="이 묶음에 담을 개수 (말하지 않았으면 비움)")
+    count: int | None = Field(default=None, ge=1, le=30, description="이 묶음에서 추천할 서로 다른 상품 수 (말하지 않았으면 비움)")
 
 
 class ShoppingIntent(BaseModel):
@@ -39,18 +40,19 @@ class ShoppingIntent(BaseModel):
     target_profiles: list[str] = Field(default_factory=list, description=(
         "요청에서 사람을 가리킨 표현을 사용자가 쓴 그대로. 예: '큰애랑 아빠 저녁' → ['큰애', '아빠']. "
         "프로필 이름으로 바꾸거나 목록에 없는 사람을 빼지 않는다."))
+    excluded_target_profiles: list[str] = Field(default_factory=list, description="먹을 대상에서 빼 달라고 한 사람 표현. '아빠 빼고 가족'이면 ['아빠']. 알레르겐과 구분한다.")
     excluded_allergens: list[str] = Field(
         default_factory=list, description=f"요청에서 추가로 빼 달라고 한 성분. 다음 중에서만: {ALLERGEN_NAMES}")
     category_or_purpose: str | None = Field(default=None, description="상품 유형이나 목적. 예: 밀키트, 라면, 만두, 피자, 야식, 저녁")
     keywords: list[str] = Field(default_factory=list, description="찾는 상품을 가리키는 낱말. 예: 짬뽕, 떡볶이, 돈까스")
-    budget: int | None = Field(default=None, description="예산 금액(원). 범위면 큰 쪽 (1~2만원 → 20000)")
+    budget: int | None = Field(default=None, ge=1, description="예산 금액(원). 범위면 큰 쪽 (1~2만원 → 20000)")
     budget_mode: Literal["max", "min", "around"] | None = Field(default=None, description=(
         "금액의 뜻. max: 이내·이하·안에서·까지·으로 / min: 이상·넘게·넘는·초과 / around: 정도·쯤·가깝게·안팎·내외·전후"))
-    budget_min: int | None = Field(default=None, description="범위 예산의 작은 쪽 (1~2만원 → 10000). 범위가 아니면 비운다")
+    budget_min: int | None = Field(default=None, ge=1, description="범위 예산의 작은 쪽 (1~2만원 → 10000). 범위가 아니면 비운다")
     per_item: bool = Field(default=False, description=(
         "금액이 상품 하나의 가격이면 true ('만원짜리 3개', '개당 5천원 이하', '하나에 2만원'). 전체 합계면 false"))
-    item_count: int | None = Field(default=None, description="담을 상품 개수")
-    item_index: int | None = Field(default=None, description="'2번 상품'처럼 장바구니 번호를 가리키면 그 번호(1부터)")
+    item_count: int | None = Field(default=None, ge=1, le=30, description="추천할 서로 다른 상품 수. 묶음별 개수가 모두 있으면 그 합계")
+    item_index: int | None = Field(default=None, ge=1, description="'2번 상품'처럼 장바구니 번호를 가리키면 그 번호(1부터)")
     from_keyword: str | None = Field(default=None, description="빼거나 바꿀 대상 상품을 가리키는 낱말")
     to_keyword: str | None = Field(default=None, description="교체·추가할 상품을 가리키는 낱말")
     preferences: list[str] = Field(default_factory=list, description=(
@@ -71,7 +73,7 @@ SYSTEM_PROMPT = """너는 마켓컬리 알레르기 맞춤 장보기 챗봇의 '
 사용자의 말을 ShoppingIntent 구조로만 바꾼다.
 
 규칙:
-- 어떤 상품이 알레르기에 안전한지는 절대 판단하지 않는다. 판정은 Rule Engine이 한다.
+- 어떤 상품이 알레르기에 안전한지는 절대 판단하지 않는다. 판정은 별도 알레르기 검증기가 한다.
 - target_profiles에는 요청에서 사람을 가리킨 표현을 사용자가 쓴 그대로 넣는다 (예: '큰애', '아들', '남편').
   아래 프로필 목록에 없는 사람이라도 빼지 말고, 다른 이름으로 바꿔 넣지도 않는다. 사람을 언급하지 않았으면 비운다.
   (누가 어느 프로필인지는 서비스가 별칭 표로 따로 확인한다.)
@@ -104,30 +106,32 @@ SYSTEM_PROMPT = """너는 마켓컬리 알레르기 맞춤 장보기 챗봇의 '
 last_error: str | None = None  # 마지막 LLM 호출 실패 사유 (점검 스크립트·health에서 보여 준다)
 last_model: str | None = None  # 마지막으로 실제 응답한 모델
 
-# 키만 넣으면 쓰는 모델 목록. 앞의 모델이 실패(혼잡 503·한도 429 등)하면 다음 모델로 넘어가고,
-# 모두 실패하면 규칙 파서로 대체한다. 무료로 쓸 수 있는 Gemini·Groq를 먼저 둔다.
-# Gemini 별칭(*-latest)은 최신 버전을 가리켜 버전명이 바뀌어도 그대로 쓸 수 있다.
-# 10/14 변경: Flash-Lite는 분당 한도(15회)와 503 과부하로 자주 실패해서 Groq를 먼저 쓴다 (Groq는 10/14 점검에서 세 호출 모두 응답).
-# Groq: llama-3.3-70b-versatile은 서비스 종료(404). 10/06 점검에서 qwen3.8-27b만 구조화 출력 7문장을 모두 통과했다
-# (gpt-oss-120b·20b는 구조화 출력 형식 오류 400이 났다).
+# 생성형 AI는 OpenAI GPT만 사용한다. 실패 시 다른 제공사 대신 규칙 파서를 쓴다.
 DEFAULT_MODELS = [
-    ("GROQ_API_KEY", "groq:qwen/qwen3.8-27b"),
-    ("GOOGLE_API_KEY", "google_genai:gemini-flash-lite-latest"),
-    ("GOOGLE_API_KEY", "google_genai:gemini-flash-latest"),
-    ("ANTHROPIC_API_KEY", "anthropic:claude-sonnet-5-5"),
-    ("OPENAI_API_KEY", "openai:gpt-4o-mini"),
+    ("OPENAI_API_KEY", "openai:gpt-6-luna"),
 ]
+OPENAI_KEY_PATH = Path(__file__).resolve().with_name(".openai_api_key")
+
+
+def _openai_key() -> str:
+    """로컬 키 파일을 우선 사용한다. 파일이 없으면 환경 변수로 대체한다."""
+    if OPENAI_KEY_PATH.is_file():
+        return OPENAI_KEY_PATH.read_text(encoding="utf-8-sig").strip()
+    return os.getenv("OPENAI_API_KEY", "").strip()
 
 _llms: dict[str, object] = {}
 
 
 def llm_models() -> list[str]:
-    """시도할 모델 순서. LLM_MODEL을 지정하면 그 모델을 맨 앞에 둔다."""
-    models = [model for key, model in DEFAULT_MODELS if os.getenv(key)]
-    chosen = os.getenv("LLM_MODEL")
-    if chosen:
-        models = [chosen] + [m for m in models if m != chosen]
-    return models
+    """OpenAI GPT 모델 하나만 반환한다. 기존 다른 제공사 설정은 무시한다."""
+    if not _openai_key():
+        return []
+    chosen = os.getenv("LLM_MODEL", "").strip()
+    if chosen.startswith("gpt-"):
+        chosen = f"openai:{chosen}"
+    if not chosen.startswith("openai:gpt-"):
+        chosen = DEFAULT_MODELS[0][1]
+    return [chosen]
 
 
 def llm_model_name() -> str | None:
@@ -139,8 +143,12 @@ def _get(model: str):
     if model not in _llms:
         from langchain.chat_models import init_chat_model
 
-        # 무료 등급은 혼잡·한도 오류가 잦다. 한 모델에서 오래 기다리지 않고 다음 모델로 넘어가도록 재시도를 줄인다.
-        _llms[model] = init_chat_model(model, temperature=0, timeout=20, max_retries=1)
+        options = {"api_key": _openai_key(), "timeout": 20, "max_retries": 1}
+        if model.startswith("openai:gpt-6"):
+            options["reasoning_effort"] = "none"
+        else:
+            options["temperature"] = 0
+        _llms[model] = init_chat_model(model, **options)
     return _llms[model]
 
 
@@ -195,13 +203,13 @@ def _ground(intent: dict, message: str, history: list[dict]) -> dict:
     (알레르기 성분은 더 빼는 쪽이라 안전하고, 답변 첫 줄에 항상 표시되므로 거르지 않는다.)
     """
     from .profiles import nospace
-    from .situations import find_preset
+    from .situations import grounded
 
     source = _ground_text(message, history)
     flat = nospace(source)
     dropped = []
     said = intent.get("situation")
-    if said and not (find_preset(source) or nospace(said) in flat):
+    if said and not grounded(said, source):
         intent["situation"], intent["situation_prefer"], intent["situation_avoid"] = None, [], []
         dropped.append(f"상황={said}")
     if intent.get("budget") is not None and not re.search(r"\d|원", source):
@@ -216,6 +224,14 @@ def _ground(intent: dict, message: str, history: list[dict]) -> dict:
     dropped += [f"사람={w}" for w in people if w not in intent["target_profiles"]]
     if dropped:
         print(f"[intent] 이번 문장에 근거가 없어 뺀 값: {', '.join(dropped)}")
+    detail = _budget_detail(source)
+    if intent.get("budget") is not None:
+        if detail:
+            intent.update(detail)
+        else:
+            intent.update(budget=None, budget_min=None, budget_mode=None, per_item=False)
+    if intent.get("item_count") is not None:
+        intent["item_count"] = _count(source)
     return intent
 
 
@@ -233,11 +249,54 @@ def parse(message: str, member_names: list[str], cart: list[dict],
                 {"members": ", ".join(member_names) or "없음", "cart": _cart_text(cart),
                  "history": _history_text(history), "message": message},
             )
-            return _clean(_drop_person_words(_ground(intent.model_dump(), message, history), message)), "llm"
+            return _finalize(_drop_person_words(_ground(intent.model_dump(), message, history), message), message), "llm"
         except Exception:  # 모든 모델이 실패해도 시연이 이어지도록 규칙 파서로 넘긴다
             print("[intent] 모든 LLM 실패, 규칙 파서로 대체")
-            return _clean(rule_parse(message, member_names, cart, mention_words)), "rule-fallback"
-    return _clean(rule_parse(message, member_names, cart, mention_words)), "rule"
+            return _finalize(rule_parse(message, member_names, cart, mention_words), message), "rule-fallback"
+    return _finalize(rule_parse(message, member_names, cart, mention_words), message), "rule"
+
+
+def _finalize(parsed, message):
+    from .allergy_scope import enforce
+    parsed = enforce(parsed, message)
+    parsed.update(_budget_detail(message))
+    count = _count(message)
+    if count is not None:
+        parsed["item_count"] = count
+    quantified = _quantified_groups(message)
+    if len(quantified) >= 2:
+        parsed["groups"] = quantified
+        parsed["item_count"] = sum(g["count"] for g in quantified)
+    issues = []
+    explicit_total = re.search(r"총\s*(\d+)\s*(?:개|종|가지)", message)
+    if explicit_total and len(quantified) >= 2 and int(explicit_total.group(1)) != parsed["item_count"]:
+        issues.append("묶음별 상품 수의 합계와 말씀하신 총 개수가 달라요. 확인해 주세요.")
+    if re.search(r"(?<!\d)[-−]\s*\d+\s*(?:(?:만|천)?원|개|가지|종)", message):
+        issues.append("음수 예산이나 수량은 사용할 수 없어요. 양수로 다시 알려 주세요.")
+    for key in ("budget", "budget_min", "item_count", "item_index"):
+        value = parsed.get(key)
+        if value is not None and (value <= 0 or (key == "item_count" and value > 30)):
+            issues.append("예산과 상품 수량은 양수이며 한 번에 최대 30종까지 추천할 수 있어요.")
+    if parsed.get("budget_min") and parsed.get("budget") and parsed["budget_min"] > parsed["budget"]:
+        issues.append("예산 범위의 최소 금액이 최대 금액보다 커요. 범위를 다시 알려 주세요.")
+    parsed["validation_issues"] = list(dict.fromkeys(issues))
+    return parsed
+
+
+def merge_pending(previous, current):
+    """Preserve the request but apply explicitly extracted current-turn conditions."""
+    merged = dict(previous)
+    for key in ("target_profiles", "excluded_target_profiles", "category_or_purpose", "keywords", "groups", "preferences", "situation", "situation_prefer", "situation_avoid", "item_count"):
+        if current.get(key):
+            merged[key] = current[key]
+    if current.get("budget") is not None:
+        for key in ("budget", "budget_min", "budget_mode", "per_item"):
+            merged[key] = current.get(key)
+    merged["excluded_allergens"] = list(dict.fromkeys(previous.get("excluded_allergens", []) + current.get("excluded_allergens", [])))
+    for key in ("validation_issues", "needs_allergen_confirmation", "unresolved_mentions", "original_mentions"):
+        if key in current:
+            merged[key] = current[key]
+    return merged
 
 
 def _drop_person_words(intent: dict, message: str) -> dict:
@@ -265,13 +324,17 @@ def _drop_person_words(intent: dict, message: str) -> dict:
 
 
 def _clean(intent: dict) -> dict:
-    """LLM이 준 성분명을 39종 표준명으로 맞추고, 사전에 없는 값은 버린다."""
-    names = []
+    """그룹을 표준명으로 확장하고, 미지원·모호한 표현을 확인 대상으로 보존한다."""
+    from .allergy_scope import resolve_term
+    names, unresolved = [], list(intent.get("unresolved_mentions", []))
     for term in intent.get("excluded_allergens", []):
-        name = normalize_allergen(term)
-        if name and name not in names:
-            names.append(name)
+        resolved, broad = resolve_term(term)
+        if not resolved or broad:
+            unresolved.append(term)
+        names.extend(n for n in resolved if n not in names)
     intent["excluded_allergens"] = names
+    intent["unresolved_mentions"] = list(dict.fromkeys(unresolved))
+    intent["needs_allergen_confirmation"] = bool(unresolved)
     return intent
 
 
@@ -292,7 +355,7 @@ _EXCLUDE = re.compile(r"([가-힣·,/\s]+?)\s*(없이|빼고|제외|없는|안\s
 _KOREAN_NUM = {"한": 1, "두": 2, "세": 3, "네": 4, "다섯": 5, "여섯": 6, "일곱": 7, "여덟": 8, "아홉": 9, "열": 10}
 
 
-_AMOUNT = re.compile(r"(\d+)\s*만\s*(?:(\d+)\s*천)?\s*원?|(\d+)\s*천\s*원|(\d[\d,]{3,})\s*원|(?<![\d가-힣])(만)\s*원")
+_AMOUNT = re.compile(r"(\d+)\s*만\s*(?:(\d+)\s*천)?\s*원?|(\d+)\s*천\s*원|(\d[\d,]*)\s*원|(?<![\d가-힣])(만)\s*원")
 # 금액 바로 뒤의 말로 뜻을 정한다. '선에서'(이내)가 '선'(안팎)보다 먼저 걸리도록 순서를 지킨다.
 _MODE_WORDS = [("min", r"^\s*(?:에\s*)?(이상|넘게|넘는|넘어|초과|부터|보다\s*비싼)"),
                ("max", r"^\s*(?:에\s*)?(선에서|이내|이하|안에서|안으로|까지|미만|아래|으로|로)"),
@@ -329,7 +392,7 @@ def _budget_detail(text: str) -> dict:
     if rng:
         detail["budget_min"] = int(rng.group(1)) * 10000
         detail["budget"] = int(rng.group(2)) * 10000
-    elif len(found) >= 2 and re.search(r"에서|부터", text[found[0].end():found[1].start()]):
+    elif len(found) >= 2 and re.search(r"에서|부터|[~−-]", text[found[0].end():found[1].start()]):
         detail["budget_min"] = _amount(found[0])
     return detail
 
@@ -350,6 +413,16 @@ def _terms(text: str) -> list[str]:
             found.append(word)
             rest = rest.replace(word, " " * len(word))
     return sorted(found, key=text.find)
+
+
+def _quantified_groups(text):
+    pattern = r"(" + "|".join(re.escape(w) for w in _VOCAB) + r")\s*(\d+|다섯|여섯|일곱|여덟|아홉|한|두|세|네|열)\s*(?:개|가지|종류|종)"
+    groups = []
+    for match in re.finditer(pattern, text):
+        word, number = match.groups()
+        count = int(number) if number.isdigit() else _KOREAN_NUM[number]
+        groups.append({"label": word, "keywords": [word], "count": count})
+    return groups
 
 
 def _find_mentions(text: str, words: list[str]) -> tuple[list[str], str]:
@@ -385,6 +458,8 @@ def rule_parse(message: str, member_names: list[str], cart: list[dict],
                mention_words: list[str] | None = None) -> dict:
     intent = ShoppingIntent(action="question").model_dump()
     intent["target_profiles"], text = _find_mentions(message, mention_words or member_names)
+    intent.update(_budget_detail(text))
+    intent["item_count"] = _count(text)
 
     index = re.search(r"(\d+)\s*번", text)
     intent["item_index"] = int(index.group(1)) if index else None
@@ -432,7 +507,7 @@ def rule_parse(message: str, member_names: list[str], cart: list[dict],
     intent["situation"] = find_preset(message)
 
     asks_how = re.search(r"어떻게|어떤\s*게|뭐가|무엇|왜|궁금|차이|알려\s*줘|\?$", text.strip())
-    if asks_how and not (intent["budget"] or intent["item_count"] or intent["excluded_allergens"]):
+    if asks_how and not re.search(r"추천|골라|담아|찾아", text) and not (intent["budget"] or intent["item_count"] or intent["excluded_allergens"]):
         intent["action"] = "question"  # "간식은 어떻게 고르면 좋아?" 같은 일반 질문
     elif has_cart and re.search(r"추가|더\s*담|더\s*넣|하나\s*더", text):
         intent["action"] = "add_item"

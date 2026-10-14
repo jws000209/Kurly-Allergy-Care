@@ -216,6 +216,8 @@ def _product(row: sqlite3.Row) -> dict:
     product["contains"] = json.loads(product["contains"])
     product["cross"] = json.loads(product["cross"])
     product["verified"] = bool(product["verified"])
+    # Recompute against the current dictionary without overwriting stored history.
+    product.update(extract(product.get("ingredients"), product.get("allergy_label")))
     return product
 
 

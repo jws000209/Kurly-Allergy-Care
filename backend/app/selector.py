@@ -27,7 +27,7 @@ class Picks(BaseModel):
 
 
 SYSTEM_PROMPT = """너는 마켓컬리 알레르기 맞춤 장보기 챗봇의 '상품 고르기' 담당이다.
-아래 후보는 모두 알레르기 검증(Rule Engine)을 이미 통과한 상품이다.
+아래 후보는 로컬 알레르기 후보 검사를 통과했다. 최종 RAG 검증은 선택 후 별도로 수행된다.
 사용자의 요청과 상황에 가장 잘 맞는 상품을 {count}개 골라 번호와 이유를 준다.
 
 규칙:
@@ -37,10 +37,12 @@ SYSTEM_PROMPT = """너는 마켓컬리 알레르기 맞춤 장보기 챗봇의 '
 - '(앞에서 추천함)' 표시가 붙은 상품은 같은 대화에서 이미 보여 준 것이다. 표시 없는 후보로 개수를 채울 수 있으면 고르지 않는다.
 - 이유에는 알레르기 안전·건강 효능·의학적 내용을 쓰지 않는다. 상황·요청에 맞는 점만 쓴다.
 - 이 장보기의 대상은 '대상'에 적힌 사람이다. 요청 문장에 다른 사람이 나와도 이유에 그 사람을 쓰지 않는다.
+- 상황 기준은 참고용 선호다. 사용자가 명시한 상품·조리 조건을 우선하며, 상황만으로 후보를 금지하지 않는다.
 
 대상: {profiles}
 요청: {request}
 상황: {situation}
+상황 참고 기준: {situation_criteria}
 취향: {preferences}
 개수: {count}개 / 예산: {budget}
 
@@ -76,6 +78,7 @@ def select(candidates: list[dict], count: int, budget, request: str,
             lambda llm: prompt | llm.with_structured_output(Picks),
             {"request": request, "count": count, "profiles": ", ".join(profiles or []) or "정하지 않음", "budget": cart_builder.describe_budget(budget) or "없음",
              "situation": (situation or {}).get("name") or "없음",
+             "situation_criteria": str({k: (situation or {}).get(k) for k in ("prefer", "avoid", "why", "source")}),
              "preferences": ", ".join(preferences or []) or "없음",
              "candidates": _candidate_text(shortlist)},
         )

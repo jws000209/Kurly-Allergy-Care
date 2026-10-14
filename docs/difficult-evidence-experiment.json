@@ -1,0 +1,149 @@
+{
+  "scope": "offline candidate gates, not GPT final approval",
+  "avoid": [
+    "땅콩",
+    "메밀",
+    "복숭아",
+    "새우",
+    "오징어"
+  ],
+  "catalog_count": 7579,
+  "difficult_count": 5065,
+  "modes": {
+    "False": {
+      "current": {
+        "UNVERIFIED": 2808,
+        "PASS": 1586,
+        "BLOCK": 671
+      },
+      "proposed": {
+        "PASS": 3110,
+        "UNVERIFIED": 1284,
+        "BLOCK": 671
+      },
+      "difficult_ramen_count": 53,
+      "ramen_current": {
+        "UNVERIFIED": 24,
+        "BLOCK": 18,
+        "PASS": 11
+      },
+      "ramen_proposed": {
+        "UNVERIFIED": 14,
+        "BLOCK": 18,
+        "PASS": 21
+      },
+      "surviving_ramen": [
+        {
+          "id": "5061317",
+          "name": "[농심] 안성탕면 5입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        },
+        {
+          "id": "5066115",
+          "name": "[팔도] 비빔면 5입",
+          "reason": "회피 알레르겐 미검출"
+        },
+        {
+          "id": "5100805",
+          "name": "[오뚜기] 열라면 5입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        },
+        {
+          "id": "5069816",
+          "name": "[삼양] 불닭볶음면 5입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        },
+        {
+          "id": "5061315",
+          "name": "[농심] 신라면 소컵 6입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        },
+        {
+          "id": "5061308",
+          "name": "[오뚜기] 스낵면 5입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        },
+        {
+          "id": "5061314",
+          "name": "[오뚜기] 진라면 순한맛 소컵 6입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        },
+        {
+          "id": "5061313",
+          "name": "[오뚜기] 진라면 매운맛 소컵 6입",
+          "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+        }
+      ]
+    },
+    "True": {
+      "current": {
+        "BLOCK": 2981,
+        "UNVERIFIED": 863,
+        "PASS": 1221
+      },
+      "proposed": {
+        "BLOCK": 2981,
+        "PASS": 1591,
+        "UNVERIFIED": 493
+      },
+      "difficult_ramen_count": 53,
+      "ramen_current": {
+        "BLOCK": 50,
+        "UNVERIFIED": 3
+      },
+      "ramen_proposed": {
+        "BLOCK": 50,
+        "PASS": 1,
+        "UNVERIFIED": 2
+      },
+      "surviving_ramen": [
+        {
+          "id": "5066115",
+          "name": "[팔도] 비빔면 5입",
+          "reason": "회피 알레르겐 미검출"
+        }
+      ]
+    }
+  },
+  "original_five": [
+    {
+      "id": "5061314",
+      "name": "[오뚜기] 진라면 순한맛 소컵 6입",
+      "current": "PASS",
+      "proposed": "PASS",
+      "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+    },
+    {
+      "id": "1001642093",
+      "name": "[오뚜기] 콕콕콕 스파게티 큰컵 120G",
+      "current": "PASS",
+      "proposed": "PASS",
+      "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+    },
+    {
+      "id": "1001642002",
+      "name": "[오뚜기] 열라면 큰컵 105G",
+      "current": "PASS",
+      "proposed": "PASS",
+      "reason": "회피 알레르겐 미검출 · 주의: 땅콩, 메밀, 새우, 오징어 혼입 가능 표시"
+    },
+    {
+      "id": "1002178667",
+      "name": "[농심] 짜파게티 큰사발면 123g",
+      "current": "UNVERIFIED",
+      "proposed": "UNVERIFIED",
+      "reason": "함유 성분 표시 없이 '같은 제조시설' 문구만 있어 판정할 수 없습니다. 상품 뒷면 표시 확인 필요."
+    },
+    {
+      "id": "1002131434",
+      "name": "[팔도] 왕뚜껑 110g",
+      "current": "UNVERIFIED",
+      "proposed": "UNVERIFIED",
+      "reason": "함유 성분 표시 없이 '같은 제조시설' 문구만 있어 판정할 수 없습니다. 상품 뒷면 표시 확인 필요."
+    }
+  ],
+  "user_declaration_hypothesis": {
+    "False": "BLOCK",
+    "True": "BLOCK"
+  }
+}

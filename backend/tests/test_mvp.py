@@ -3,6 +3,7 @@
 import os
 import tempfile
 from pathlib import Path
+import pytest
 
 os.environ["KAC_DB_PATH"] = str(Path(tempfile.mkdtemp()) / "test.sqlite3")
 os.environ["KAC_SEED_PATH"] = str(Path(__file__).parent / "mock_products.json")  # 흐름 테스트용 고정 상품
@@ -17,6 +18,12 @@ from app.extractor import extract  # noqa: E402
 from app.intent import rule_parse  # noqa: E402
 from app.main import app  # noqa: E402
 from app.rule_engine import BLOCK, PASS, UNVERIFIED, combine_profiles, judge  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def no_live_llm(monkeypatch):
+    from app import intent
+    monkeypatch.setattr(intent, "_openai_key", lambda: "")
 
 
 def test_39_allergens():
@@ -214,7 +221,7 @@ def test_profile_aliases_and_resolution():
     assert names(["큰애랑"]) == (["첫째 아들"], [], [])        # 순서 호칭 + 조사
     assert names(["민준이"]) == (["첫째 아들"], [], [])        # 직접 넣은 별칭
     assert names(["남편"]) == (["아빠"], [], [])               # 관계 동의어
-    assert names(["아이"]) == ([], ["아이"], [])               # 아이가 둘이면 애매 → 되묻기
+    assert names(["아이"]) == (["첫째 아들", "둘째 딸"], [], [])  # 공통 자녀 추천
     assert names(["아이들"]) == (["첫째 아들", "둘째 딸"], [], [])
     assert names(["엄마"]) == ([], [], ["엄마"])               # 없는 사람 → 되묻기
 
@@ -241,10 +248,10 @@ def test_chat_asks_for_unknown_or_ambiguous_person():
         result = say("엄마랑 아빠 밀키트 2개", "t2")
         assert result["cart"] == [] and "'엄마'에 해당하는 가족 프로필이 없어요" in result["reply"]
 
-        # 아이가 둘이면 '아이'는 애매 → 되묻기
+        # 아이가 둘이면 공통 회피 조건으로 함께 추천
         client.post(f"/api/users/{uid}/members", json={"name": "둘째 딸", "allergens": ["밀"], "relation": "딸", "order": "둘째"})
         result = say("아이 간식 3개", "t3")
-        assert result["cart"] == [] and "여러 개" in result["reply"]
+        assert not result["asked"] and result["constraints"]["avoid"] == ["밀", "우유"]
 
         # 잘못된 관계 값은 거부
         bad = client.post(f"/api/users/{uid}/members", json={"name": "x", "relation": "외계인"})
@@ -566,7 +573,7 @@ def test_group_and_plural_person_words():
     assert names(["딸들이랑"]) == (["셋째 딸", "첫째 딸"], [], [])
     assert names(["부모님"]) == (["아빠", "엄마"], [], [])
     assert len(names(["가족"])[0]) == 5
-    assert names(["딸"])[1]                       # 한 명을 가리키는데 둘이면 여전히 되묻는다
+    assert names(["딸"]) == (["셋째 딸", "첫째 딸"], [], [])  # 딸 그룹의 공통 추천
     message = profiles.understood_message(profiles.resolve(["딸들"], members))
     assert message == "이렇게 이해했어요: '딸들' → '첫째 딸'·'셋째 딸'"
 
@@ -738,3 +745,21 @@ def test_official_table_basis_when_no_ingredients():
     assert judge({**facility_only, "id": "d"}, ["대두"])["status"] == UNVERIFIED
     # 원재료명이 있으면 원재료명 기준
     assert extract("정제수, 설탕", "- 우유 함유")["basis"] == "원재료"
+
+
+def test_search_alias_maps_to_existing_product_name(tmp_path, monkeypatch):
+    """사용자 말('훠궈소스', '오뎅')을 DB 상품명에 있는 말로 바꿔 찾는다 (10/14: 훠궈소스는 DB에 없고 마라탕소스가 있음)."""
+    import json
+    from app import cart_builder
+
+    seed = tmp_path / "seed.json"
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "alias.sqlite3")
+    monkeypatch.setattr(db, "SEED_PATH", seed)
+    rows = [("m1", "[하이디라오] 마라탕소스 110g"), ("f1", "[Kurly's] 사각 어묵")]
+    seed.write_text(json.dumps([{"id": i, "name": n, "price": 3000, "category": "간편식>소스/양념", "ingredients": "",
+                                 "allergy_label": "", "image": "", "source": "kurly",
+                                 "url": f"https://www.kurly.com/goods/{i}"} for i, n in rows]), encoding="utf-8")
+    with TestClient(app):
+        assert cart_builder.missing_terms(["훠궈소스"]) == []
+        assert cart_builder.missing_terms(["오뎅"]) == []
+        assert cart_builder.missing_terms(["없는재료XYZ"]) == ["없는재료XYZ"]

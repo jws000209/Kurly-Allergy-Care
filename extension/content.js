@@ -315,8 +315,8 @@
 
   // ---------- views ----------
   const STATUS = {
-    PASS: { label: "PASS", cls: "pass" },
-    BLOCK: { label: "BLOCK", cls: "block" },
+    PASS: { label: "통과", cls: "pass" },
+    BLOCK: { label: "차단", cls: "block" },
     UNVERIFIED: { label: "정보 확인 필요", cls: "unverified" },
   };
 

@@ -1,5 +1,7 @@
 """Ingredient Allergen Extractor: 원재료명·알레르기 표시 문구 → 19종 알레르겐."""
 import re
+import os
+from functools import lru_cache
 
 from .allergens import ALLERGENS
 
@@ -10,7 +12,7 @@ _CROSS_PATTERN = re.compile(
 # 컬리 표시문은 줄바꿈 없이 한 줄로 오기도 한다 ("- 우유, 밀 함유 - 이 제품은 … 같은 제조시설에서 …").
 # 그래서 줄·문장 경계뿐 아니라 '함유' 뒤, '- ' 앞, '이 제품은/본 제품은' 앞에서도 구간을 나눈다.
 _SEGMENT_SPLIT = re.compile(
-    r"\n|\.\s|\.$|※|\*|(?<=함유)|(?:^|\s)-\s*|(?=(?:이|본|해당)\s*제품은)"
+    r"\n|\.\s|\.$|※|\*|(?<=함유)(?!\s*(?:없|아니|하지))|(?:^|\s)-\s*|(?=(?:이|본|해당)\s*제품은)"
     r"|(?<=있음)|(?<=혼입가능)|(?<=혼입\s가능)(?!성)|(?<=가능성)"  # "…혼입 가능성 있음 대두, 밀 함유"
 )
 _TOKEN_SPLIT = re.compile(r"[\s,()\[\]{}/·:;%\-]+")
@@ -53,7 +55,7 @@ _NOT_ALLERGY_NOTICE = re.compile(r"당알코올|페닐알라닌|카페인|알코
 _NONE_PATTERN = re.compile(r"해당\s*(사항)?\s*없|알레르기\s*유발\s*(물질|성분|식품)?\s*(은|이)?\s*없|^\s*-?\s*없음")
 
 
-def _match(segment: str) -> set[str]:
+def _legacy_match(segment: str) -> set[str]:
     found = set()
     tokens = set(_TOKEN_SPLIT.split(segment))
     tokens |= {_TOKEN_PARTICLE.sub("", tok) for tok in tokens if len(tok) >= 2}
@@ -68,13 +70,44 @@ def _match(segment: str) -> set[str]:
     return found
 
 
-def extract(ingredients: str | None, allergy_label: str | None) -> dict:
+@lru_cache(maxsize=20000)
+def _dictionary_match(segment: str, version: str) -> frozenset:
+    from .allergen_dictionary import get_dictionary
+    return frozenset(h["name"] for h in get_dictionary().retrieve(segment) if h["automatic"])
+
+
+def _match(segment: str) -> set[str]:
+    if os.getenv("KAC_ALLERGY_PROVIDER", "rag") == "rule":
+        return _legacy_match(segment)
+    try:
+        from .allergen_dictionary import get_dictionary
+        return set(_dictionary_match(segment, get_dictionary().version))
+    except Exception:
+        # The RAG decision provider will mark missing dictionary evidence UNVERIFIED.
+        return _legacy_match(segment)
+
+
+@lru_cache(maxsize=20000)
+def _extract_cached(ingredients: str, allergy_label: str, provider: str, version: str) -> dict:
     """반환: contains(함유), cross(혼입 가능), verified(판정할 근거가 있는지).
 
     원재료명이 있으면 그것으로 판정할 수 있다 (verified). 원재료명이 없으면 확인됨이 아니다.
     예외: 원물 판단 표시(NO_LABEL_REVIEWED)가 있으면 원물로 확인됨.
     알레르기 표시문의 '함유' 문구는 contains 계산에 함께 쓰지만, 그것만으로는 확인됨이 아니다.
     """
+    if provider != "rule":
+        from .allergen_context import contexts, valid_ingredients
+        from .allergen_dictionary import get_dictionary
+        try:
+            dictionary = get_dictionary()
+            hits = dictionary.retrieve(ingredients, source="ingredients") + dictionary.retrieve(allergy_label, source="label")
+            contains = {h["name"] for h in hits if h["automatic"] and h["kind"] == "contains"}
+            cross = {h["name"] for h in hits if h["automatic"] and h["kind"] == "cross"} - contains
+            stated = any(c["declared"] and not _NOT_ALLERGY_NOTICE.search(c["quote"]) for c in contexts(allergy_label, "label"))
+            basis = "원재료" if valid_ingredients(ingredients) else "원물" if allergy_label.strip() == NO_LABEL_REVIEWED else "공식표시" if stated else None
+            return {"contains": sorted(contains), "cross": sorted(cross), "verified": basis is not None, "basis": basis}
+        except Exception:
+            pass  # Retain legacy positive evidence; the RAG provider fails closed.
     if (allergy_label or "").strip() == NO_LABEL_REVIEWED and not (ingredients or "").strip():
         return {"contains": [], "cross": [], "verified": True, "basis": "원물"}
     ingredients = fix_typos((ingredients or "").strip())
@@ -113,3 +146,17 @@ def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     else:
         basis = None
     return {"contains": sorted(contains), "cross": sorted(cross), "verified": basis is not None, "basis": basis}
+
+
+def extract(ingredients: str | None, allergy_label: str | None) -> dict:
+    """Cache extraction by original text, provider, and current workbook version."""
+    provider = os.getenv("KAC_ALLERGY_PROVIDER", "rag")
+    version = "legacy"
+    if provider != "rule":
+        try:
+            from .allergen_dictionary import get_dictionary
+            version = get_dictionary().version
+        except Exception:
+            version = "dictionary-unavailable"
+    result = _extract_cached(ingredients or "", allergy_label or "", provider, version)
+    return {**result, "contains": list(result["contains"]), "cross": list(result["cross"])}

@@ -8,6 +8,7 @@ Rule Engine을 통과한 후보 안에서 고르기(selector)에 쓰인다.
 """
 import functools
 import re
+import os
 from typing import TypedDict
 
 from langgraph.checkpoint.memory import MemorySaver
@@ -32,6 +33,7 @@ HELP_TEXT = ("가족 프로필의 알레르기 조건에 맞춰 상품을 추천
 
 
 class CartState(TypedDict, total=False):
+    response_style: str
     user_id: int
     selected_member_ids: list[int]
     message: str
@@ -40,6 +42,7 @@ class CartState(TypedDict, total=False):
     constraints: dict   # profiles, avoid, strict, extra_excluded, terms, budget, count
     cart: list[dict]
     stats: dict
+    validation_diagnostics: list[dict]
     notes: list[str]
     group_summary: list[str]  # 묶음별 담긴 개수 (예: ['점심 2', '과자 0'])
     reply: str
@@ -55,8 +58,34 @@ def parse_intent(state: CartState) -> dict:
     members = db.list_members(state["user_id"])
     parsed, parser = intent_parser.parse(state["message"], [m["name"] for m in members], state.get("cart", []),
                                          profiles.mention_vocabulary(members), state.get("history", []))
-    return {"intent": parsed, "parser": parser, "notes": [], "notes_after": [], "stats": {}, "reply": "", "asked": False,
-            "group_summary": []}
+    pending = state.get("constraints", {}).get("pending_allergy_intent")
+    if pending:
+        from .allergy_scope import scan
+        scope = scan(state["message"], confirmation=True)
+        if scope["avoid"] and not scope["unresolved_mentions"]:
+            parsed = {**intent_parser.merge_pending(pending, parsed), "excluded_allergens": list(dict.fromkeys(pending.get("excluded_allergens", []) + parsed.get("excluded_allergens", []) + scope["avoid"])),
+                      "unresolved_mentions": [], "needs_allergen_confirmation": False}
+        else:
+            parsed = {**intent_parser.merge_pending(pending, parsed), "needs_allergen_confirmation": True}
+    pending_profile = state.get("constraints", {}).get("pending_profile_intent")
+    if pending_profile and not pending:
+        raw, _ = intent_parser._find_mentions(state["message"], profiles.mention_vocabulary(members))
+        parsed = {**intent_parser.merge_pending(pending_profile, parsed), "target_profiles": parsed.get("target_profiles") or raw,
+                  "excluded_target_profiles": [],
+                  "expected_target_count": (state.get("constraints", {}).get("target_scope") or {}).get("expected_count")}
+        if not parsed["target_profiles"]:
+            parsed["target_profiles"] = pending_profile.get("target_profiles", [])
+        old_scope = state.get("constraints", {}).get("target_scope") or {}
+        if old_scope.get("exclude_mentions"):
+            parsed["excluded_target_profiles"] = raw
+            parsed["target_profiles"] = old_scope.get("include_mentions", [])
+            if not raw:
+                parsed["excluded_target_profiles"] = old_scope["exclude_mentions"]
+    from .allergy_scope import GROUPS
+    scope_notes = ["갑각류는 현재 지원하는 게·새우를 회피 조건에 적용했어요. 그 밖의 종은 판정할 수 없어요."] if any(
+        word.casefold() in GROUPS for word in parsed.get("original_mentions", [])) else []
+    return {"intent": parsed, "parser": parser, "notes": scope_notes, "notes_after": [], "stats": {}, "reply": "", "asked": False,
+            "group_summary": [], "validation_diagnostics": []}
 
 
 def resolve_conditions(state: CartState) -> dict:
@@ -64,12 +93,24 @@ def resolve_conditions(state: CartState) -> dict:
     intent = state["intent"]
     previous = state.get("constraints", {})
     members = db.list_members(state["user_id"])
+    if intent.get("validation_issues"):
+        return {"constraints": {**previous, "ask": "\n".join(intent["validation_issues"])}}
+    if intent.get("needs_allergen_confirmation"):
+        unresolved = ", ".join(intent.get("unresolved_mentions", []))
+        return {"constraints": {**previous, "pending_allergy_intent": intent,
+                "ask": f"피해야 할 알레르겐의 세부 범위를 확인해 주세요: {unresolved}. 예: '게와 새우', '호두만'. 현재 지원하는 39종 밖의 성분은 판정할 수 없습니다."}}
 
     # 사람 표현 → 프로필 연결은 별칭 표(규칙)로 한다. 없거나 애매하면 추천하지 않고 되묻는다.
-    resolved = profiles.resolve(intent["target_profiles"], members)
+    resolved, target_scope = profiles.resolve_scope(state["message"], intent["target_profiles"], members,
+                                                     intent.get("excluded_target_profiles"))
+    expected = intent.get("expected_target_count")
+    if expected is not None and len({m["id"] for _, m, _ in resolved["matched"]}) != expected:
+        target_scope["issues"].append(f"{expected}명 대상의 정확한 프로필 이름을 모두 알려 주세요.")
+        target_scope["expected_count"] = expected
     ask = profiles.ask_message(resolved, members)
-    if ask:
-        return {"constraints": {**previous, "ask": ask}}
+    if ask or target_scope["issues"]:
+        return {"constraints": {**previous, "ask": ask or "\n".join(target_scope["issues"]),
+                "pending_profile_intent": intent, "target_scope": target_scope}}
     mentioned = list({m["id"]: m for _, m, _ in resolved["matched"]}.values())
     selected = [m for m in members if m["id"] in state.get("selected_member_ids", [])]
     # 이번 문장에 사람이 없고 선택 칩도 없으면, 같은 대화에서 직전에 정한 대상을 이어 쓴다 (답변 첫 줄에 대상이 항상 보임)
@@ -97,11 +138,16 @@ def resolve_conditions(state: CartState) -> dict:
         groups = [{"label": None, "terms": terms, "count": None}]
     # 상황(소풍 등)은 새 추천 요청에서 말했을 때만 정하고, 그 추천을 고치는 동안에만 유지한다.
     # 새 추천 요청이 오면 그 문장에 상황이 없으면 비워진다 → 예전 상황이 다음 장보기에 끼어들지 않는다.
-    situation = (situations.build(intent.get("situation"), intent.get("situation_prefer"), intent.get("situation_avoid"))
+    situation = (situations.build(intent.get("situation"), intent.get("situation_prefer"), intent.get("situation_avoid"), terms)
                  if is_new else previous.get("situation"))
     constraints = {
         **combined,
         "ask": None,
+        "pending_allergy_intent": None,
+        "pending_profile_intent": None,
+        "target_scope": target_scope,
+        "original_mentions": intent.get("original_mentions", []),
+        "unresolved_mentions": intent.get("unresolved_mentions", []),
         "member_ids": [m["id"] for m in targets],
         "kept_targets": not mentioned and not selected and bool(kept),
         "understood": profiles.understood_message(resolved) if mentioned else None,
@@ -140,10 +186,10 @@ def supervisor(state: CartState) -> dict:
 def route(state: CartState) -> str:
     action = state["intent"]["action"]
     constraints = state["constraints"]
-    if action == "question":
-        return "answer"
     if constraints.get("ask"):
         return "ask_profile"
+    if action == "question":
+        return "answer"
     if action in EDIT_ACTIONS and state.get("cart"):
         return "edit_cart"
     return "build_cart"
@@ -151,7 +197,8 @@ def route(state: CartState) -> str:
 
 def ask_profile(state: CartState) -> dict:
     if state["constraints"].get("ask"):
-        return {"reply": state["constraints"]["ask"], "asked": True}
+        suffix = "\n대상을 정확히 확인한 뒤 상품을 골라 드릴게요." if state.get("response_style") == "friendly" else ""
+        return {"reply": state["constraints"]["ask"] + suffix, "asked": True}
     return {"reply": "누구를 위한 장보기인가요? 상단에서 가족 프로필을 선택하거나, "
                      "\"첫째 간식 5개\"처럼 프로필 이름을 함께 말씀해 주세요. "
                      "프로필이 없다면 '가족 프로필' 탭에서 먼저 추가해 주세요.", "asked": True}
@@ -187,7 +234,7 @@ def build_cart(state: CartState) -> dict:
         if group["terms"] and len(missing) == len(group["terms"]):
             # 상품 DB에 아예 없는 유형은 다른 상품으로 몰래 채우지 않고 알린다
             notes.append(f"{prefix}'{', '.join(missing)}'은(는) 지금 상품 DB에 없어서 추천하지 못했어요. "
-                         f"(지금 있는 분류: {', '.join(cart_builder.catalog_categories())})")
+                         "다른 상품 종류로 찾아보세요.")
             summary.append(f"{group['label']} 0")
             continue
         if missing:
@@ -319,8 +366,38 @@ def edit_cart(state: CartState) -> dict:
 
 def revalidate(state: CartState) -> dict:
     c = state["constraints"]
-    cart, notes = cart_builder.revalidate(state.get("cart", []), c["avoid"], c["strict"])
-    return {"cart": cart, "notes": state.get("notes", []) + notes}
+    diagnostics = []
+    original = state.get("cart", [])
+    cart, notes = cart_builder.revalidate(original, c["avoid"], c["strict"], diagnostics=diagnostics)
+    if state.get("intent", {}).get("action") == "create_cart" and len(cart) < len(original):
+        groups = c.get("groups") or [{"terms": c["terms"], "label": None}]
+        tried = {item["id"] for item in original}
+        for group in groups:
+            label = group.get("label")
+            target = sum(item.get("group") == label for item in original) if len(groups) > 1 else len(original)
+            need = target - (sum(item.get("group") == label for item in cart) if len(groups) > 1 else len(cart))
+            if need <= 0:
+                continue
+            candidates, _ = cart_builder.search(group["terms"], c["avoid"], c["strict"], exclude_ids=tried | {i["id"] for i in cart}, situation=c.get("situation"), user_id=state["user_id"])
+            for candidate in candidates[:15]:
+                if need <= 0:
+                    break
+                if not cart_builder.fits(cart, candidate, c["budget"]):
+                    continue
+                verified, _ = cart_builder.revalidate([candidate], c["avoid"], c["strict"], diagnostics=diagnostics)
+                tried.add(candidate["id"])
+                if verified:
+                    cart.extend({**item, "group": label} if len(groups) > 1 else item for item in verified)
+                    need -= 1
+    _, (lo, hi) = cart_builder.budget_band(c["budget"])
+    if cart and not lo <= cart_builder.total(cart) <= hi:
+        cart = []
+        notes.append("검증된 상품으로는 요청하신 예산 조건을 맞추지 못했어요.")
+    notes_after = state.get('notes_after', [])
+    if len(cart) < len(original):
+        notes_after = [f"최종 확인된 상품은 {len(cart)}개로, 요청한 목록을 모두 채우지 못했어요."] if cart else []
+    return {"cart": cart, "notes": state.get("notes", []) + notes, "validation_diagnostics": diagnostics, 'notes_after': notes_after,
+            "group_summary": [f"{label} {sum(i.get('group') == label for i in cart)}" for label in dict.fromkeys(i.get("group") for i in original) if label]}
 
 
 def respond(state: CartState) -> dict:
@@ -341,6 +418,18 @@ def respond(state: CartState) -> dict:
         budget = f" · {cart_builder.describe_budget(c['budget'])}" if c["budget"] else ""
         lines.append(f"추천 상품 {len(cart)}개{groups}{budget}")
     lines.extend(state.get("notes", []))
+    if not cart:
+        lines.append("현재 조건으로 추천할 수 있는 상품을 찾지 못했어요. 회피 조건을 유지한 채 다른 상품 종류로 찾아보세요.")
+    if cart and len(c["profiles"]) > 1:
+        lines.append("이 대상들이 함께 먹을 수 있도록 회피 조건을 합친 공통 추천 목록이에요.")
+    from .allergy_scope import GROUPS
+    if any(w.casefold() in GROUPS for w in c.get("original_mentions", [])) and not any("갑각류는 현재" in line for line in lines):
+        lines.append("갑각류는 현재 지원하는 게·새우를 회피 조건에 적용했어요. 그 밖의 종은 판정할 수 없어요.")
+    if state.get("response_style") == "friendly":
+        if cart:
+            lines.append("원하시면 상품을 바꾸거나 예산을 조정해 드릴게요.")
+        else:
+            lines.append("현재 추천 목록이 비어 있어요. 위 안내를 확인해 주세요. 원하시면 다른 상품 종류로 다시 찾아 드릴게요.")
     return {"reply": "\n".join(lines)}
 
 
@@ -350,9 +439,11 @@ def answer(state: CartState) -> dict:
     messages = [
         ("system", "너는 마켓컬리 알레르기 맞춤 장보기 챗봇이다. 두세 문장으로 짧게 답한다. "
                    "특정 상품이 알레르기에 안전한지는 스스로 판단하지 말고, 프로필을 선택해 "
-                   "상품 추천을 요청하면 Rule Engine이 검증한다고 안내한다. 의학적 조언은 하지 않는다.\n" + HELP_TEXT),
+                   "상품 추천을 요청하면 별도 알레르기 검증기가 확인한다고 안내한다. 의학적 조언은 하지 않는다.\n" + HELP_TEXT),
         ("human", state["message"]),
     ]
+    if state.get("response_style") == "friendly":
+        messages[0] = ("system", messages[0][1] + "\n친근한 존댓말과 쉬운 표현을 사용하고, 사용자가 다음에 할 수 있는 행동을 한 가지 안내한다. 안전을 보장하거나 판정 결과를 추측하지 않는다.")
     try:
         result, _ = intent_parser.invoke_with_fallback(lambda llm: llm, messages)
         text = result.text  # langchain-core 버전에 따라 속성(문자열)이거나 메서드다
@@ -404,14 +495,17 @@ def build_graph():
 agent = build_graph()
 
 
-def chat(user_id: int, thread_id: str, message: str, selected_member_ids: list[int]) -> dict:
+def chat(user_id: int, thread_id: str, message: str, selected_member_ids: list[int], response_style: str | None = None) -> dict:
+    response_style = response_style or os.getenv("KAC_REPLY_STYLE", "concise")
+    if response_style not in {"concise", "friendly"}:
+        raise ValueError("response_style must be concise or friendly")
     state = agent.invoke(
-        {"user_id": user_id, "message": message, "selected_member_ids": selected_member_ids},
+        {"user_id": user_id, "message": message, "selected_member_ids": selected_member_ids, "response_style": response_style},
         config={"configurable": {"thread_id": f"{user_id}:{thread_id}"}},
     )
     # 되물은 턴에는 이전 추천을 다시 보여 주지 않는다 (대화 상태에는 그대로 남아 이후 수정에 쓰인다)
     cart = [] if state.get("asked") else state.get("cart", [])
-    return {"reply": state["reply"], "cart": cart, "asked": bool(state.get("asked")), "intent": state["intent"],
+    return {"reply": state["reply"], "response_style": response_style, "cart": cart, "asked": bool(state.get("asked")), "intent": state["intent"],
             "parser": state["parser"], "llm": intent_parser.last_model or intent_parser.llm_model_name(),
             "picked_by": (state.get("stats") or {}).get("picked_by"),
             "notes_after": [] if state.get("asked") else state.get("notes_after", []),

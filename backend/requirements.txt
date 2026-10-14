@@ -9,3 +9,4 @@ langchain-anthropic
 langchain-openai
 pytest
 httpx
+openpyxl>=3.1.5,<4

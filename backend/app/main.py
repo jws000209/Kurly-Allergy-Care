@@ -54,6 +54,7 @@ class ChatBody(BaseModel):
     thread_id: str
     message: str = Field(min_length=1, max_length=500)
     selected_member_ids: list[int] = []
+    response_style: Literal["concise", "friendly"] | None = None
 
 
 class ProductBody(BaseModel):
@@ -63,6 +64,7 @@ class ProductBody(BaseModel):
     category: str = ""
     ingredients: str = ""
     allergy_label: str = ""
+    allergy_info: str = ""
     url: str = ""
     image: str = ""
 
@@ -83,8 +85,16 @@ def _valid_allergens(allergens: list[str]) -> list[str]:
 
 @app.get("/api/health")
 def health():
+    from .allergen_dictionary import get_dictionary
+    import os
+    try:
+        dictionary = get_dictionary()
+        rag = {"provider": os.getenv("KAC_ALLERGY_PROVIDER", "rag"), "ready": True,
+               "dictionary_version": dictionary.version, "entries": len(dictionary.entries)}
+    except Exception:
+        rag = {"provider": os.getenv("KAC_ALLERGY_PROVIDER", "rag"), "ready": False}
     return {"ok": True, "llm": intent.llm_model_name(), "llm_last_error": intent.last_error,
-            "products": len(db.list_products())}
+            "products": len(db.list_products()), "rag": rag}
 
 
 @app.get("/api/allergens")
@@ -145,7 +155,7 @@ def delete_member(member_id: int):
 
 @app.post("/api/chat")
 def chat(body: ChatBody):
-    return agent.chat(body.user_id, body.thread_id, body.message, body.selected_member_ids)
+    return agent.chat(body.user_id, body.thread_id, body.message, body.selected_member_ids, body.response_style)
 
 
 @app.post("/api/check")
@@ -161,6 +171,15 @@ def check(body: CheckBody):
     members = [m for m in all_members if m["id"] in body.member_ids]
     combined = combine_profiles(members)
     data = body.product.model_dump()
+    data['allergy_label'] = '\n'.join(dict.fromkeys(t for t in (data['allergy_label'], data.get('allergy_info')) if t))
+    known = db.get_product(data['id'])
+    if known:
+        # A partial page scrape must not erase an already collected positive declaration.
+        previous_label = known.get('allergy_label') or ''
+        if previous_label != NO_LABEL_REVIEWED:
+            data['allergy_label'] = '\n'.join(dict.fromkeys(t for t in (previous_label, data['allergy_label']) if t))
+        if not data['ingredients'].strip():
+            data['ingredients'] = known.get('ingredients') or ''
     if not data["allergy_label"].strip():
         # 페이지에 표시가 없어도, 상품 DB에서 원물·단순 구성으로 판단해 둔 상품이면 그 판단을 쓴다 (빈 값으로 덮어쓰지 않게)
         known = db.get_product(data["id"])
@@ -171,8 +190,11 @@ def check(body: CheckBody):
     else:
         product = {**data, **extract(data["ingredients"], data["allergy_label"])}
     verdict = judge(product, combined["avoid"], combined["strict"])
-    return {**verdict, "profiles": combined["profiles"], "avoid": combined["avoid"],
-            "contains": product["contains"], "cross": product["cross"]}
+    from .presentation import verdict_reason
+    public = {k: v for k, v in verdict.items() if k != "rag"}
+    return {**public, "reason": verdict_reason(verdict), "profiles": combined["profiles"], "avoid": combined["avoid"],
+            "contains": verdict.get("contains", product["contains"]),
+            "cross": verdict.get("cross", product["cross"])}
 
 
 class MinEaBody(BaseModel):

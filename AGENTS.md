@@ -13,8 +13,9 @@
 - `mode=item`은 아이템 협업 필터링, `mode=user`는 함께 구매 추천, `mode=content`는 콘텐츠 유사도, `mode=hybrid`는 혼합이다. 사용자 간 유사도 추천과 구매자 집계 추천을 문서에서 혼동하지 않는다.
 - 구매 기반 기능은 `purchase` 이력만 사용한다. 조회·장바구니 추가·추천 노출을 실제 구매로 취급하지 않는다.
 - 추천 점수는 취향 순위이며 알레르기 판정과 구분한다. 판정에서 제외한 상품을 점수로 복구하지 않는다.
-- 알레르기 목표 구조는 생성형 AI + RAG다. 현재는 Rule Engine이다: 원재료명 사전 매핑(39종, 확장 20종 포함)과 공식 함유 표시(법정 19종). RAG는 미구현이다. 구현 전에는 적용되었다고 표기하지 않는다.
-- 사전은 `data/알레르겐_원재료_매칭사전_v1.xlsx`다. 신뢰등급·자동매칭·수동검토·예외 규칙·근거를 보존한다. 후속 전환 순서는 Handoff.md를 따른다.
+- 알레르기 판정의 공통 진입점은 **Rule Engine (`rule_engine.judge`)**이다. 기본 `rag` 모드는 로컬 XLSX 어휘 검색·출처별 근거 통합 → Rule Engine 기본 규칙과 성분별 근거 검사 → GPT 구조화 근거 검토 → 코드의 최종 정책 적용으로 구성된다. 기본 규칙은 `rule_engine._judge_rules`, 추가 보호 규칙과 GPT 응답 검증·최종 상태 결정은 `allergen_rag.assess`에 구현되어 있다. GPT의 status는 검토 의견이며 최종 상태를 직접 결정하지 않는다. 다만 검증된 검출과 불확실성은 최종 결과에 영향을 주므로 전체 경로를 'LLM 없이 규칙만으로 판정'한다고 설명하지 않는다.
+- 임베딩·벡터 DB는 사용하지 않는다. 검색 후보는 GPT 호출 없이 로컬 규칙·근거 검사만 사용하고 `/api/check`와 최종 장바구니 재검증은 로컬 단계에서 종료되지 않은 경우 GPT 근거 검토를 수행한다. 기존 BLOCK은 해제하지 않고 모델·사전 실패는 UNVERIFIED다. `KAC_ALLERGY_PROVIDER=rule`은 GPT 검토와 RAG 추가 보호 규칙을 사용하지 않는 기존 규칙 비교용이다.
+- 현재 사전은 `data/알레르겐_원재료_매칭사전_v1_한영통합.xlsx`다. 신뢰등급·자동매칭·수동검토·예외 규칙·근거를 보존한다. 정책이 비어 있는 항목은 자동 확정하지 않는다. 사전 원본은 수정하지 않는다.
 - `.env`, API 키, 실사용 SQLite DB, 가상환경은 커밋하거나 문서·로그에 노출하지 않는다.
 
 ## 구현·검증
@@ -22,6 +23,8 @@
 - 명령은 `backend`에서 `.venv/Scripts/python.exe`, 루트에서는 `backend/.venv/Scripts/python.exe`를 사용한다.
 - 추천의 중심은 `backend/app/recommender.py`, 연결 지점은 `cart_builder.py`, `agent.py`, `main.py`다.
 - DB 변경은 기존 계정·프로필·행동 이력을 보존한다. 같은 행동 재시도로 선호 점수를 누적하지 않는다.
+- 테스트는 conftest의 임시 DB·시드·최소 수량 파일·대화 상태 격리를 유지한다. 모듈 import 이후 환경변수만 바꿔 실사용 DB를 테스트하지 않는다.
+- 알레르기 문맥은 allergen_context.py의 구간 분류를 추출기와 RAG에서 공유한다. friendly 답변 옵션은 판정·경고·상품 선택을 바꾸지 않는다.
 - 생성·수정 후 알레르기 재검증, 예산·최소 구매 수량 검사를 유지한다. 근거 부족은 UNVERIFIED로 처리한다.
 - 의미 있는 변경 후 `backend`에서 `.venv/Scripts/python.exe -m pytest -q`를 실행한다. 외부 LLM·컬리 실사이트 확인은 자동 테스트와 구분해 기록한다.
 - 백엔드 코드·테스트 변경 후 필요 시 루트에서 `backend/.venv/Scripts/python.exe colab/make_colab_package.py`로 Colab 묶음을 갱신한다.

@@ -1,0 +1,29 @@
+{
+  "model": [
+    "openai:gpt-6-luna"
+  ],
+  "dictionary": "알레르겐_원재료_매칭사전_v1_한영통합.xlsx",
+  "sha256": "fa55ed7c8c9113c1cdb847edc211a7d4190c44165d1653aa9a402dd98a255935",
+  "entries": 1395,
+  "missing_policy_entries": 93,
+  "checks": {
+    "luna_selected": true,
+    "local_key_loaded": true,
+    "master_39": true,
+    "exceptions_20": true,
+    "grounded_pass": true,
+    "milk_block": true,
+    "ambiguous_review": true,
+    "negative_review": true,
+    "strict_cross_block": true,
+    "official_expanded_review": true,
+    "cashew_not_milk": true,
+    "all_39_detected": true,
+    "failure_closed": true,
+    "workbook_unchanged": true
+  },
+  "passed": 14,
+  "total": 14,
+  "network_calls": 0,
+  "database_writes": 0
+}
