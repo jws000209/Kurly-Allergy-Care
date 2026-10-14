@@ -142,7 +142,7 @@ def route(state: CartState) -> str:
     constraints = state["constraints"]
     if action == "question":
         return "answer"
-    if constraints.get("ask") or (not constraints["profiles"] and not constraints["avoid"]):
+    if constraints.get("ask"):
         return "ask_profile"
     if action in EDIT_ACTIONS and state.get("cart"):
         return "edit_cart"

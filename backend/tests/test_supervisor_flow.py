@@ -22,11 +22,11 @@ def test_recommendation_goes_through_supervisor_to_build_cart(monkeypatch):
         assert path[-1] == "remember"
 
 
-def test_profile_question_is_routed_by_supervisor_without_building(monkeypatch):
+def test_no_profile_no_avoid_goes_to_build_cart_without_asking(monkeypatch):
     monkeypatch.setattr(intent_parser, "llm_models", lambda: [])
     with TestClient(app) as client:
         user = client.post("/api/login", json={"name": "관리자질문"}).json()
         result = _chat(client, user["id"], "flow2", "간식 2개", [])
         path = result["workflow"]
-        assert "supervisor" in path and "build_cart" not in path
-        assert "ask_profile" in path and path[-1] == "remember"
+        assert "supervisor" in path and "build_cart" in path and "ask_profile" not in path
+        assert path[-1] == "remember"

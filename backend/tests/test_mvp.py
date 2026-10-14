@@ -172,10 +172,10 @@ def test_chat_flow():
         assert "예산" in result["reply"]
         assert_safe(result["cart"], {"우유", "알류"})
 
-        # 프로필 없이 요청하면 장바구니를 만들지 않고 되묻는다
+        # 프로필·회피 조건 없이 요청하면 되묻지 않고 종류(간식)대로 장바구니를 만든다 (룰 엔진은 검사할 기준이 없어 전부 통과)
         result = client.post("/api/chat", json={"user_id": user["id"], "thread_id": "t2",
                                                 "message": "간식 5개 담아줘", "selected_member_ids": []}).json()
-        assert result["cart"] == [] and "프로필" in result["reply"]
+        assert result["cart"] and "프로필을 선택" not in result["reply"]
 
 
 def test_check_page_product():

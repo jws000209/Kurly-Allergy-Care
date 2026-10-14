@@ -141,4 +141,4 @@ def test_chat_uses_personalization_and_preserves_explicit_price_sort(catalog):
     assert any(i["co_purchase_score"] > 0 for i in result["cart"])
     # 같은 thread 문자열을 쓰는 다른 계정으로 대화 상태가 이어지지 않는다.
     other_result = agent.chat(other["id"], "personalized", "주스 1개", [])
-    assert other_result["asked"] and not other_result["cart"]
+    assert not other_result["asked"] and other_result["cart"]  # 프로필·회피 없이도 종류대로 만든다 (되묻지 않음)

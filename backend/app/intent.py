@@ -83,6 +83,9 @@ SYSTEM_PROMPT = """너는 마켓컬리 알레르기 맞춤 장보기 챗봇의 '
 - '추천해줘·골라줘·담아줘·찾아줘'처럼 상품을 달라는 요청은 상품 종류를 말하지 않았어도(예: '아들 생일인데 먹을 음식 추천해줘')
   question이 아니라 create_cart다. question은 장바구니와 무관한 질문·인사일 때만 고른다.
 - '음식·먹을 거·먹거리'처럼 종류를 정하지 않는 말은 category_or_purpose·keywords에 넣지 않는다.
+- '○○ 재료', '○○에 들어가는 것', '○○ 만들 때 쓸 것'처럼 요리 이름으로 재료를 묻는 요청은, 그 요리에 보통 쓰는 재료 이름을
+  한 낱말씩 keywords에 넣는다 (예: '김밥 재료' → 김밥김, 단무지, 햄, 맛살, 시금치). 요리 이름('김밥 재료') 자체는 넣지 않는다.
+  상품 DB에 없는 재료가 있을 수 있으므로 5개 안팎으로 짧게 고른다.
 - 가족 프로필 이름이 상품 이름과 같을 수 있다 (예: 프로필 '라면'). 사람으로 쓴 말('라면이 먹을 피자'의 '라면')은
   target_profiles에만 넣고 category_or_purpose·keywords·groups에는 넣지 않는다.
 - 여러 종류를 따로 원하면(예: '점심이랑 과자', '반찬 2개하고 라면 3개') groups에 종류별로 나누고 개수도 나눠 적는다.
@@ -104,13 +107,13 @@ last_model: str | None = None  # 마지막으로 실제 응답한 모델
 # 키만 넣으면 쓰는 모델 목록. 앞의 모델이 실패(혼잡 503·한도 429 등)하면 다음 모델로 넘어가고,
 # 모두 실패하면 규칙 파서로 대체한다. 무료로 쓸 수 있는 Gemini·Groq를 먼저 둔다.
 # Gemini 별칭(*-latest)은 최신 버전을 가리켜 버전명이 바뀌어도 그대로 쓸 수 있다.
-# Flash-Lite가 무료 한도가 넉넉하고 덜 붐벼서 먼저 쓴다 (10/06 점검에서 Flash는 503이 잦았다).
+# 10/14 변경: Flash-Lite는 분당 한도(15회)와 503 과부하로 자주 실패해서 Groq를 먼저 쓴다 (Groq는 10/14 점검에서 세 호출 모두 응답).
 # Groq: llama-3.3-70b-versatile은 서비스 종료(404). 10/06 점검에서 qwen3.8-27b만 구조화 출력 7문장을 모두 통과했다
 # (gpt-oss-120b·20b는 구조화 출력 형식 오류 400이 났다).
 DEFAULT_MODELS = [
+    ("GROQ_API_KEY", "groq:qwen/qwen3.8-27b"),
     ("GOOGLE_API_KEY", "google_genai:gemini-flash-lite-latest"),
     ("GOOGLE_API_KEY", "google_genai:gemini-flash-latest"),
-    ("GROQ_API_KEY", "groq:qwen/qwen3.8-27b"),
     ("ANTHROPIC_API_KEY", "anthropic:claude-sonnet-5-5"),
     ("OPENAI_API_KEY", "openai:gpt-4o-mini"),
 ]
