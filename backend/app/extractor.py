@@ -77,7 +77,7 @@ def _dictionary_match(segment: str, version: str) -> frozenset:
 
 
 def _match(segment: str) -> set[str]:
-    if os.getenv("KAC_ALLERGY_PROVIDER", "rag") == "rule":
+    if os.getenv("KAC_ALLERGY_PROVIDER", "rule") == "rule":
         return _legacy_match(segment)
     try:
         from .allergen_dictionary import get_dictionary
@@ -150,7 +150,7 @@ def _extract_cached(ingredients: str, allergy_label: str, provider: str, version
 
 def extract(ingredients: str | None, allergy_label: str | None) -> dict:
     """Cache extraction by original text, provider, and current workbook version."""
-    provider = os.getenv("KAC_ALLERGY_PROVIDER", "rag")
+    provider = os.getenv("KAC_ALLERGY_PROVIDER", "rule")
     version = "legacy"
     if provider != "rule":
         try:

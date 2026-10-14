@@ -634,7 +634,7 @@
     .launcher { position: fixed; right: 24px; bottom: 24px; z-index: 2147483646; background: #5f0080; color: #fff; border: 0;
       border-radius: 24px; padding: 12px 18px; font-size: 14px; font-weight: 700; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
     .launcher .badge { margin-right: 6px; }
-    .panel { position: fixed; right: 24px; bottom: 80px; z-index: 2147483647; width: 380px; height: min(640px, calc(100vh - 110px));
+    .panel { position: fixed; right: 24px; bottom: 80px; z-index: 2147483647; width: 380px; height: min(760px, calc(100vh - 110px));
       background: #fff; color: #333; font-size: 13px; line-height: 1.5; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,.25);
       display: flex; flex-direction: column; overflow: hidden; }
     header { background: #5f0080; color: #fff; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; }

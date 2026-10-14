@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field
 
 from . import cart_builder, intent as intent_parser
 
-SHORTLIST = 25   # LLM에 보여 줄 후보 수 (검색 점수 상위)
+SHORTLIST = 10   # LLM에 보여 줄 후보 수 (검색 점수 상위)
 WHY_LIMIT = 40   # 추천 이유 글자 수 상한
 
 

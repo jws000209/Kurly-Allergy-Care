@@ -17,19 +17,20 @@ def test_miso_does_not_match_inside_unrelated_ingredients():
     assert any(h['name'] == '대두' for h in d.retrieve('미소'))
 
 
-def test_replenishes_only_verified_candidates_and_keeps_internal_reasons(monkeypatch):
+def test_does_not_replenish_automatically_and_keeps_internal_reasons(monkeypatch):
     products = {i: {'id': i, 'name': i, 'price': 100} for i in ['old', 'bad', 'good']}
     monkeypatch.setattr(cart_builder.db, 'get_product', products.get)
     monkeypatch.setattr(cart_builder, 'judge', lambda p, *args: {'status': 'PASS' if p['id'] == 'good' else 'UNVERIFIED', 'reason': 'GPT internal', 'rag': {'assessment': {'reason': 'OCR internal'}}})
     monkeypatch.setattr(cart_builder, 'to_item', lambda p, v: p)
-    monkeypatch.setattr(cart_builder, 'search', lambda *args, **kwargs: ([products['bad'], products['good']], {}))
+    monkeypatch.setattr(cart_builder, 'search', lambda *args, **kwargs: __import__('pytest').fail('automatic replacement search'))
     state = {'constraints': {'avoid': ['새우'], 'strict': False, 'terms': ['라면'], 'budget': 500, 'profiles': ['아들', '아들2']}, 'intent': {'action': 'create_cart'}, 'cart': [products['old']], 'user_id': 1}
     result = agent.revalidate(state)
-    assert [p['id'] for p in result['cart']] == ['good']
-    assert len(result['validation_diagnostics']) == 3
+    assert result['cart'] == []
+    assert len(result['validation_diagnostics']) == 1
     assert result['validation_diagnostics'][0]['verdict']['reason'] == 'GPT internal'
     reply = agent.respond({**state, **result})['reply']
     assert 'GPT' not in reply and '재검증' not in reply
+    assert '추천에서 제외' not in reply and "'old'" not in reply
     empty = agent.respond({**state, 'cart': []})['reply']
     assert '공통 추천 목록' not in empty and '찾지 못했어요' in empty
 

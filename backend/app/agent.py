@@ -368,27 +368,9 @@ def revalidate(state: CartState) -> dict:
     c = state["constraints"]
     diagnostics = []
     original = state.get("cart", [])
-    cart, notes = cart_builder.revalidate(original, c["avoid"], c["strict"], diagnostics=diagnostics)
-    if state.get("intent", {}).get("action") == "create_cart" and len(cart) < len(original):
-        groups = c.get("groups") or [{"terms": c["terms"], "label": None}]
-        tried = {item["id"] for item in original}
-        for group in groups:
-            label = group.get("label")
-            target = sum(item.get("group") == label for item in original) if len(groups) > 1 else len(original)
-            need = target - (sum(item.get("group") == label for item in cart) if len(groups) > 1 else len(cart))
-            if need <= 0:
-                continue
-            candidates, _ = cart_builder.search(group["terms"], c["avoid"], c["strict"], exclude_ids=tried | {i["id"] for i in cart}, situation=c.get("situation"), user_id=state["user_id"])
-            for candidate in candidates[:15]:
-                if need <= 0:
-                    break
-                if not cart_builder.fits(cart, candidate, c["budget"]):
-                    continue
-                verified, _ = cart_builder.revalidate([candidate], c["avoid"], c["strict"], diagnostics=diagnostics)
-                tried.add(candidate["id"])
-                if verified:
-                    cart.extend({**item, "group": label} if len(groups) > 1 else item for item in verified)
-                    need -= 1
+    cart, _ = cart_builder.revalidate(original, c["avoid"], c["strict"], diagnostics=diagnostics)
+    # Product-level rejection reasons stay in diagnostics, not chatbot messages.
+    notes = []
     _, (lo, hi) = cart_builder.budget_band(c["budget"])
     if cart and not lo <= cart_builder.total(cart) <= hi:
         cart = []

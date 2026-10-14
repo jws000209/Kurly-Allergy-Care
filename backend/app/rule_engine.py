@@ -60,7 +60,7 @@ def _judge_rules(product: dict, avoid: list[str], strict: bool = False) -> dict:
 def judge(product: dict, avoid: list[str], strict: bool = False, *, generate: bool = True) -> dict:
     """Shared decision boundary. RAG cannot override established BLOCK evidence."""
     import os
-    if os.getenv("KAC_ALLERGY_PROVIDER", "rag") == "rule":
+    if os.getenv("KAC_ALLERGY_PROVIDER", "rule") == "rule":
         return _judge_rules(product, avoid, strict)
     from .allergen_rag import assess
     return assess(product, avoid, strict, generate=generate)

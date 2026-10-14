@@ -85,14 +85,19 @@ def _valid_allergens(allergens: list[str]) -> list[str]:
 
 @app.get("/api/health")
 def health():
-    from .allergen_dictionary import get_dictionary
     import os
+    provider = os.getenv("KAC_ALLERGY_PROVIDER", "rule")
+    if provider == "rule":
+        return {"ok": True, "llm": intent.llm_model_name(), "llm_last_error": intent.last_error,
+                "products": len(db.list_products()), "rag": {"provider": "rule", "enabled": False, "ready": False}}
+    from .allergen_dictionary import get_dictionary
     try:
         dictionary = get_dictionary()
-        rag = {"provider": os.getenv("KAC_ALLERGY_PROVIDER", "rag"), "ready": True,
+        rag = {"provider": os.getenv("KAC_ALLERGY_PROVIDER", "rule"), "ready": True,
+               "gpt_review_enabled": True,
                "dictionary_version": dictionary.version, "entries": len(dictionary.entries)}
     except Exception:
-        rag = {"provider": os.getenv("KAC_ALLERGY_PROVIDER", "rag"), "ready": False}
+        rag = {"provider": os.getenv("KAC_ALLERGY_PROVIDER", "rule"), "ready": False}
     return {"ok": True, "llm": intent.llm_model_name(), "llm_last_error": intent.last_error,
             "products": len(db.list_products()), "rag": rag}
 
