@@ -1,0 +1,1872 @@
+{
+  "health": {
+    "ok": true,
+    "llm": null,
+    "llm_last_error": null,
+    "products": 4062
+  },
+  "catalog": {
+    "total": 4062,
+    "sources": {
+      "kurly": 4062
+    },
+    "verified": 4062,
+    "reviewed_blank": 1010,
+    "missing_price": 0
+  },
+  "dumplings": {
+    "request": "만두 5개",
+    "status": 200,
+    "elapsed_ms": 274.9,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류",
+        "우유"
+      ],
+      "strict": false,
+      "profiles": [
+        "첫째"
+      ],
+      "ask": null,
+      "member_ids": [
+        1
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[첫째] 회피 알레르겐: 알류, 우유\n추천 상품 5개",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "1000229616",
+        "name": "[비비고] 왕교자 455gx2개입",
+        "price": 9980,
+        "unit_price": 9980,
+        "min_ea": 1,
+        "review_count": 66612,
+        "sales_rank": 33,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000229616",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/410de09c-72d5-4e5d-b2b0-d62b33ce2395.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5082274",
+        "name": "[비비고] 왕교자 만두 대용량 1.05kg",
+        "price": 11480,
+        "unit_price": 11480,
+        "min_ea": 1,
+        "review_count": 50853,
+        "sales_rank": 10,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5082274",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/6b5b8a11-d6fd-475b-a830-8f3313b3c6a7.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5062771",
+        "name": "[전주 베테랑] 고기만두",
+        "price": 11960,
+        "unit_price": 5980,
+        "min_ea": 2,
+        "review_count": 40220,
+        "sales_rank": 11,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5062771",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1657612696912l0.jpg?v=0531",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5054455",
+        "name": "[Kurly's] 물만두",
+        "price": 9200,
+        "unit_price": 9200,
+        "min_ea": 1,
+        "review_count": 34999,
+        "sales_rank": 17,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5054455",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/16272914139l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5072984",
+        "name": "[전주 베테랑] 김치만두",
+        "price": 11960,
+        "unit_price": 5980,
+        "min_ea": 2,
+        "review_count": 34373,
+        "sales_rank": 8,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5072984",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1657612645101l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 5,
+    "minimum_packages": 7,
+    "total": 54580
+  },
+  "dumplings_wheat": {
+    "request": "만두 5개",
+    "status": 200,
+    "elapsed_ms": 113.4,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "밀"
+      ],
+      "strict": false,
+      "profiles": [
+        "밀시험"
+      ],
+      "ask": null,
+      "member_ids": [
+        4
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[밀시험] 회피 알레르겐: 밀\n조건에 맞으면서 알레르기 검증을 통과한 상품이 없어요. 상품 유형을 바꿔 보시겠어요?",
+    "notes_after": [],
+    "cart": [],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 0,
+    "minimum_packages": 0,
+    "total": 0
+  },
+  "union": {
+    "request": "만두 5개",
+    "status": 200,
+    "elapsed_ms": 113.0,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "땅콩",
+        "알류",
+        "우유"
+      ],
+      "strict": true,
+      "profiles": [
+        "첫째",
+        "아빠"
+      ],
+      "ask": null,
+      "member_ids": [
+        1,
+        2
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[첫째·아빠] 회피 알레르겐: 땅콩, 알류, 우유 (혼입 가능 표시도 제외)\n추천 상품 1개",
+    "notes_after": [
+      "요청한 종류 중 알레르기 조건을 통과한 상품이 1개뿐이라 5개를 채우지 못했어요."
+    ],
+    "cart": [
+      {
+        "id": "5012850",
+        "name": "[SEMIWON] 새우 완탕",
+        "price": 10380,
+        "unit_price": 10380,
+        "min_ea": 1,
+        "review_count": 11524,
+        "sales_rank": 24,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5012850",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1580201828996l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 1,
+    "minimum_packages": 1,
+    "total": 10380
+  },
+  "budget": {
+    "request": "만두 2만원 이내 5개",
+    "status": 200,
+    "elapsed_ms": 136.4,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류",
+        "우유"
+      ],
+      "strict": false,
+      "profiles": [
+        "첫째"
+      ],
+      "ask": null,
+      "member_ids": [
+        1
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 2만원 이내 5개",
+      "preferences": [],
+      "budget": {
+        "amount": 20000,
+        "mode": "max",
+        "min": null,
+        "per_item": false
+      },
+      "count": 5,
+      "again": false
+    },
+    "reply": "[첫째] 회피 알레르겐: 알류, 우유\n추천 상품 2개 · 예산 20,000원 이내",
+    "notes_after": [
+      "예산 20,000원 이내 조건으로는 2개까지만 담을 수 있었어요."
+    ],
+    "cart": [
+      {
+        "id": "1000229616",
+        "name": "[비비고] 왕교자 455gx2개입",
+        "price": 9980,
+        "unit_price": 9980,
+        "min_ea": 1,
+        "review_count": 66612,
+        "sales_rank": 33,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000229616",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/410de09c-72d5-4e5d-b2b0-d62b33ce2395.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5054455",
+        "name": "[Kurly's] 물만두",
+        "price": 9200,
+        "unit_price": 9200,
+        "min_ea": 1,
+        "review_count": 34999,
+        "sales_rank": 17,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5054455",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/16272914139l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 2,
+    "minimum_packages": 2,
+    "total": 19180
+  },
+  "no_profile": {
+    "request": "만두 5개",
+    "status": 200,
+    "elapsed_ms": 15.6,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [],
+      "strict": false,
+      "profiles": [],
+      "ask": null,
+      "member_ids": [],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "누구를 위한 장보기인가요? 상단에서 가족 프로필을 선택하거나, \"첫째 간식 5개\"처럼 프로필 이름을 함께 말씀해 주세요. 프로필이 없다면 '가족 프로필' 탭에서 먼저 추가해 주세요.",
+    "notes_after": [],
+    "cart": [],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 0,
+    "minimum_packages": 0,
+    "total": 0
+  },
+  "missing_type": {
+    "request": "사프란 5개 추천해줘",
+    "status": 200,
+    "elapsed_ms": 151.8,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류",
+        "우유"
+      ],
+      "strict": false,
+      "profiles": [
+        "첫째"
+      ],
+      "ask": null,
+      "member_ids": [
+        1
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [],
+      "groups": [
+        {
+          "label": null,
+          "terms": [],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "사프란 5개 추천해줘",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[첫째] 회피 알레르겐: 알류, 우유\n추천 상품 5개",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "5053329",
+        "name": "[Kurly's] 국산콩 두부 300g",
+        "price": 2200,
+        "unit_price": 2200,
+        "min_ea": 1,
+        "review_count": 551285,
+        "sales_rank": 2,
+        "category": "국/반찬/메인요리>두부/어묵/부침개",
+        "url": "https://www.kurly.com/goods/5053329",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/164730389977l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:39",
+        "needs_option": false,
+        "score": 0,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5030559",
+        "name": "[KF365] 애호박 1개",
+        "price": 1690,
+        "unit_price": 1690,
+        "min_ea": 1,
+        "review_count": 467185,
+        "sales_rank": 1,
+        "category": "채소>오이/호박/고추",
+        "url": "https://www.kurly.com/goods/5030559",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/6a175689-ff66-4838-b04d-cbed2ec3e3be.jpg?v=0531",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:30",
+        "needs_option": false,
+        "score": 0,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5000491",
+        "name": "[KF365] 아보카도 (1개)",
+        "price": 2490,
+        "unit_price": 2490,
+        "min_ea": 1,
+        "review_count": 335877,
+        "sales_rank": 7,
+        "category": "과일/견과/쌀>수입과일",
+        "url": "https://www.kurly.com/goods/5000491",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/1cef6b73-3e91-4a7a-8024-58b5d8cf5010.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:32",
+        "needs_option": false,
+        "score": 0,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5026448",
+        "name": "[KF365] 감자 1kg",
+        "price": 3990,
+        "unit_price": 3990,
+        "min_ea": 1,
+        "review_count": 250433,
+        "sales_rank": 1,
+        "category": "채소>고구마/감자/당근",
+        "url": "https://www.kurly.com/goods/5026448",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/25ac1ec1-005e-44a3-a00f-4224d25bcc96.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:29",
+        "needs_option": false,
+        "score": 0,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5027320",
+        "name": "깐대파 500g",
+        "price": 3490,
+        "unit_price": 3490,
+        "min_ea": 1,
+        "review_count": 243283,
+        "sales_rank": 2,
+        "category": "채소>양파/대파/마늘/배추",
+        "url": "https://www.kurly.com/goods/5027320",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1653037895339l0.jpeg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 알레르기 표시가 없어 원물·단순 구성 기준으로 판단 (라벨 확인 아님)",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:30",
+        "needs_option": false,
+        "score": 0,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 5,
+    "minimum_packages": 5,
+    "total": 13860
+  },
+  "almond_request": {
+    "request": "아몬드 없이 간식 5개",
+    "status": 200,
+    "elapsed_ms": 139.6,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류",
+        "우유"
+      ],
+      "strict": false,
+      "profiles": [
+        "첫째"
+      ],
+      "ask": null,
+      "member_ids": [
+        1
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "간식"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "간식"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "아몬드 없이 간식 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[첫째] 회피 알레르겐: 알류, 우유\n추천 상품 5개",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "5052324",
+        "name": "[호떡당] 꿀호떡 (70g X 5개)",
+        "price": 6900,
+        "unit_price": 6900,
+        "min_ea": 1,
+        "review_count": 21115,
+        "sales_rank": 18,
+        "category": "베이커리>간식빵",
+        "url": "https://www.kurly.com/goods/5052324",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1590729010113l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:46",
+        "needs_option": false,
+        "score": 2,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5052673",
+        "name": "[아루화 담양한과] 우리밀 미니약과 140g(개별포장)",
+        "price": 3650,
+        "unit_price": 3650,
+        "min_ea": 1,
+        "review_count": 18381,
+        "sales_rank": 14,
+        "category": "간식/과자/떡>떡/한과",
+        "url": "https://www.kurly.com/goods/5052673",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1591322886248l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:27",
+        "needs_option": false,
+        "score": 2,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5058855",
+        "name": "[미주라] 통밀크래커 385g",
+        "price": 8500,
+        "unit_price": 8500,
+        "min_ea": 1,
+        "review_count": 14163,
+        "sales_rank": 44,
+        "category": "간식/과자/떡>쿠키/비스킷/크래커",
+        "url": "https://www.kurly.com/goods/5058855",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/e9b20014-4386-49b9-8858-89b33d5d91c2.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 우유 혼입 가능 표시",
+        "cross_matched": [
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:28",
+        "needs_option": false,
+        "score": 2,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "1000178191",
+        "name": "[크라운] 참쌀선과 253g (44봉)",
+        "price": 4150,
+        "unit_price": 4150,
+        "min_ea": 1,
+        "review_count": 11559,
+        "sales_rank": 56,
+        "category": "간식/과자/떡>과자/간식",
+        "url": "https://www.kurly.com/goods/1000178191",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/ebf2ab56-fc9f-4f52-a93e-975b232c4574.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:27",
+        "needs_option": false,
+        "score": 2,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5071368",
+        "name": "[로투스] 록키마운틴 마시멜로 150g",
+        "price": 3500,
+        "unit_price": 3500,
+        "min_ea": 1,
+        "review_count": 4686,
+        "sales_rank": 40,
+        "category": "간식/과자/떡>초콜릿/젤리/캔디",
+        "url": "https://www.kurly.com/goods/5071368",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1620106725988l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출",
+        "cross_matched": [],
+        "last_checked_at": "2026-10-13T09:30:27",
+        "needs_option": false,
+        "score": 2,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 5,
+    "minimum_packages": 5,
+    "total": 26700
+  },
+  "edit_baseline": {
+    "request": "만두 5개",
+    "status": 200,
+    "elapsed_ms": 152.7,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류"
+      ],
+      "strict": false,
+      "profiles": [
+        "알류시험"
+      ],
+      "ask": null,
+      "member_ids": [
+        3
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[알류시험] 회피 알레르겐: 알류\n추천 상품 5개",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "1000229616",
+        "name": "[비비고] 왕교자 455gx2개입",
+        "price": 9980,
+        "unit_price": 9980,
+        "min_ea": 1,
+        "review_count": 66612,
+        "sales_rank": 33,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000229616",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/410de09c-72d5-4e5d-b2b0-d62b33ce2395.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5082274",
+        "name": "[비비고] 왕교자 만두 대용량 1.05kg",
+        "price": 11480,
+        "unit_price": 11480,
+        "min_ea": 1,
+        "review_count": 50853,
+        "sales_rank": 10,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5082274",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/6b5b8a11-d6fd-475b-a830-8f3313b3c6a7.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5062771",
+        "name": "[전주 베테랑] 고기만두",
+        "price": 11960,
+        "unit_price": 5980,
+        "min_ea": 2,
+        "review_count": 40220,
+        "sales_rank": 11,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5062771",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1657612696912l0.jpg?v=0531",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5054455",
+        "name": "[Kurly's] 물만두",
+        "price": 9200,
+        "unit_price": 9200,
+        "min_ea": 1,
+        "review_count": 34999,
+        "sales_rank": 17,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5054455",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/16272914139l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5072984",
+        "name": "[전주 베테랑] 김치만두",
+        "price": 11960,
+        "unit_price": 5980,
+        "min_ea": 2,
+        "review_count": 34373,
+        "sales_rank": 8,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5072984",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1657612645101l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 5,
+    "minimum_packages": 7,
+    "total": 54580
+  },
+  "edit_add_avoid": {
+    "request": "우유 없이 더 저렴하게",
+    "status": 200,
+    "elapsed_ms": 333.4,
+    "parser": "rule",
+    "action": "cheaper",
+    "constraints": {
+      "avoid": [
+        "알류"
+      ],
+      "strict": false,
+      "profiles": [
+        "알류시험"
+      ],
+      "ask": null,
+      "member_ids": [
+        3
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[알류시험] 회피 알레르겐: 알류\n추천 상품 5개\n5개 상품을 같은 유형의 더 저렴한 상품으로 바꿨어요.",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "1001931649",
+        "name": "[차려낸] 국내산 닭가슴살 치킨너겟",
+        "price": 5900,
+        "unit_price": 5900,
+        "min_ea": 1,
+        "review_count": 8090,
+        "sales_rank": 5,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1001931649",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/3464ef3f-8463-409f-9afe-24e77aa7861c.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "1001953003",
+        "name": "[CJ]크리스피 치킨텐더",
+        "price": 6980,
+        "unit_price": 6980,
+        "min_ea": 1,
+        "review_count": 271,
+        "sales_rank": 88,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1001953003",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/6a30ce8d-a299-4885-88a0-221fe167e29f.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "5067153",
+        "name": "[대구 반할만떡] 당면 만두",
+        "price": 6980,
+        "unit_price": 6980,
+        "min_ea": 1,
+        "review_count": 14139,
+        "sales_rank": 84,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5067153",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1613545248388l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "5007148",
+        "name": "[SEMIWON] 왕하가우",
+        "price": 7180,
+        "unit_price": 7180,
+        "min_ea": 1,
+        "review_count": 11693,
+        "sales_rank": 79,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5007148",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1500540457194l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "1000525392",
+        "name": "[성수동분식] 대구식 수제 납작만두(30개입)",
+        "price": 7200,
+        "unit_price": 7200,
+        "min_ea": 1,
+        "review_count": 2861,
+        "sales_rank": 54,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000525392",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/bd168de8-f9d0-4ce9-8738-fe2edf72456b.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 5,
+    "minimum_packages": 5,
+    "total": 34240
+  },
+  "remove": {
+    "request": "2번 상품 빼줘",
+    "status": 200,
+    "elapsed_ms": 23.1,
+    "parser": "rule",
+    "action": "remove_item",
+    "constraints": {
+      "avoid": [
+        "알류"
+      ],
+      "strict": false,
+      "profiles": [
+        "알류시험"
+      ],
+      "ask": null,
+      "member_ids": [
+        3
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[알류시험] 회피 알레르겐: 알류\n추천 상품 4개\n'[CJ]크리스피 치킨텐더'을(를) 뺐어요.",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "1001931649",
+        "name": "[차려낸] 국내산 닭가슴살 치킨너겟",
+        "price": 5900,
+        "unit_price": 5900,
+        "min_ea": 1,
+        "review_count": 8090,
+        "sales_rank": 5,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1001931649",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/3464ef3f-8463-409f-9afe-24e77aa7861c.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "5067153",
+        "name": "[대구 반할만떡] 당면 만두",
+        "price": 6980,
+        "unit_price": 6980,
+        "min_ea": 1,
+        "review_count": 14139,
+        "sales_rank": 84,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5067153",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1613545248388l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "5007148",
+        "name": "[SEMIWON] 왕하가우",
+        "price": 7180,
+        "unit_price": 7180,
+        "min_ea": 1,
+        "review_count": 11693,
+        "sales_rank": 79,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5007148",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1500540457194l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      },
+      {
+        "id": "1000525392",
+        "name": "[성수동분식] 대구식 수제 납작만두(30개입)",
+        "price": 7200,
+        "unit_price": 7200,
+        "min_ea": 1,
+        "review_count": 2861,
+        "sales_rank": 54,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000525392",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/bd168de8-f9d0-4ce9-8738-fe2edf72456b.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류 혼입 가능 표시",
+        "cross_matched": [
+          "알류"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 4,
+    "minimum_packages": 4,
+    "total": 27260
+  },
+  "profile_change": {
+    "request": "더 저렴하게",
+    "status": 200,
+    "elapsed_ms": 275.3,
+    "parser": "rule",
+    "action": "cheaper",
+    "constraints": {
+      "avoid": [
+        "땅콩",
+        "알류",
+        "우유"
+      ],
+      "strict": true,
+      "profiles": [
+        "첫째",
+        "아빠"
+      ],
+      "ask": null,
+      "member_ids": [
+        1,
+        2
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 5개",
+      "preferences": [],
+      "budget": null,
+      "count": 5,
+      "again": false
+    },
+    "reply": "[첫째·아빠] 회피 알레르겐: 땅콩, 알류, 우유 (혼입 가능 표시도 제외)\n같은 유형에서 더 저렴한 검증 통과 상품이 없어요. 개수나 상품 유형을 바꿔 보시겠어요?\n재검증에서 '[차려낸] 국내산 닭가슴살 치킨너겟' 제외: 우유 함유\n재검증에서 '[대구 반할만떡] 당면 만두' 제외: 땅콩, 알류, 우유 혼입 가능 (엄격 모드)\n재검증에서 '[SEMIWON] 왕하가우' 제외: 땅콩, 알류, 우유 혼입 가능 (엄격 모드)\n재검증에서 '[성수동분식] 대구식 수제 납작만두(30개입)' 제외: 땅콩, 알류, 우유 혼입 가능 (엄격 모드)",
+    "notes_after": [],
+    "cart": [],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 0,
+    "minimum_packages": 0,
+    "total": 0
+  },
+  "zero_count": {
+    "request": "만두 0개",
+    "status": 200,
+    "elapsed_ms": 134.0,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류",
+        "우유"
+      ],
+      "strict": false,
+      "profiles": [
+        "첫째"
+      ],
+      "ask": null,
+      "member_ids": [
+        1
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 0개",
+      "preferences": [],
+      "budget": null,
+      "count": 0,
+      "again": false
+    },
+    "reply": "[첫째] 회피 알레르겐: 알류, 우유\n추천 상품 5개",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "1000229616",
+        "name": "[비비고] 왕교자 455gx2개입",
+        "price": 9980,
+        "unit_price": 9980,
+        "min_ea": 1,
+        "review_count": 66612,
+        "sales_rank": 33,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000229616",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/410de09c-72d5-4e5d-b2b0-d62b33ce2395.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5082274",
+        "name": "[비비고] 왕교자 만두 대용량 1.05kg",
+        "price": 11480,
+        "unit_price": 11480,
+        "min_ea": 1,
+        "review_count": 50853,
+        "sales_rank": 10,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5082274",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/6b5b8a11-d6fd-475b-a830-8f3313b3c6a7.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5062771",
+        "name": "[전주 베테랑] 고기만두",
+        "price": 11960,
+        "unit_price": 5980,
+        "min_ea": 2,
+        "review_count": 40220,
+        "sales_rank": 11,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5062771",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1657612696912l0.jpg?v=0531",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5054455",
+        "name": "[Kurly's] 물만두",
+        "price": 9200,
+        "unit_price": 9200,
+        "min_ea": 1,
+        "review_count": 34999,
+        "sales_rank": 17,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5054455",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/16272914139l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      },
+      {
+        "id": "5072984",
+        "name": "[전주 베테랑] 김치만두",
+        "price": 11960,
+        "unit_price": 5980,
+        "min_ea": 2,
+        "review_count": 34373,
+        "sales_rank": 8,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/5072984",
+        "image": "https://img-cf.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/shop/data/goods/1657612645101l0.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 5,
+    "minimum_packages": 7,
+    "total": 54580
+  },
+  "negative_count": {
+    "request": "만두 -1개",
+    "status": 200,
+    "elapsed_ms": 113.7,
+    "parser": "rule",
+    "action": "create_cart",
+    "constraints": {
+      "avoid": [
+        "알류",
+        "우유"
+      ],
+      "strict": false,
+      "profiles": [
+        "첫째"
+      ],
+      "ask": null,
+      "member_ids": [
+        1
+      ],
+      "kept_targets": false,
+      "understood": null,
+      "extra_excluded": [],
+      "terms": [
+        "만두"
+      ],
+      "groups": [
+        {
+          "label": null,
+          "terms": [
+            "만두"
+          ],
+          "count": null
+        }
+      ],
+      "situation": null,
+      "request": "만두 -1개",
+      "preferences": [],
+      "budget": null,
+      "count": 1,
+      "again": false
+    },
+    "reply": "[첫째] 회피 알레르겐: 알류, 우유\n추천 상품 1개",
+    "notes_after": [],
+    "cart": [
+      {
+        "id": "1000229616",
+        "name": "[비비고] 왕교자 455gx2개입",
+        "price": 9980,
+        "unit_price": 9980,
+        "min_ea": 1,
+        "review_count": 66612,
+        "sales_rank": 33,
+        "category": "간편식/밀키트/샐러드>치킨/피자/핫도그/만두",
+        "url": "https://www.kurly.com/goods/1000229616",
+        "image": "https://product-image.kurly.com/hdims/resize/%5E%3E720x%3E936/cropcenter/720x936/quality/85/src/product/image/410de09c-72d5-4e5d-b2b0-d62b33ce2395.jpg",
+        "source": "kurly",
+        "status": "PASS",
+        "reason": "회피 알레르겐 미검출 · 주의: 알류, 우유 혼입 가능 표시",
+        "cross_matched": [
+          "알류",
+          "우유"
+        ],
+        "last_checked_at": "2026-10-13T09:30:42",
+        "needs_option": false,
+        "score": 3,
+        "preferred": false,
+        "recommendation_score": 0.0,
+        "recommendation_method": "popularity",
+        "content_score": 0.0,
+        "item_score": 0.0,
+        "co_purchase_score": 0.0
+      }
+    ],
+    "allergen_violations_against_applied_conditions": [],
+    "distinct_products": 1,
+    "minimum_packages": 1,
+    "total": 9980
+  },
+  "check_block": {
+    "ingredients": "",
+    "label": "우유 함유",
+    "http_status": 200,
+    "verdict": {
+      "status": "BLOCK",
+      "matched": [
+        "우유"
+      ],
+      "cross_matched": [],
+      "reason": "우유 함유",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [
+        "우유"
+      ],
+      "cross": []
+    },
+    "elapsed_ms": 20.0
+  },
+  "check_cross_normal": {
+    "ingredients": "",
+    "label": "대두 함유. 우유 혼입 가능",
+    "http_status": 200,
+    "verdict": {
+      "status": "PASS",
+      "matched": [],
+      "cross_matched": [
+        "우유"
+      ],
+      "reason": "회피 알레르겐 미검출 · 주의: 우유 혼입 가능 표시",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [
+        "대두"
+      ],
+      "cross": [
+        "우유"
+      ]
+    },
+    "elapsed_ms": 2.1
+  },
+  "check_cross_strict": {
+    "ingredients": "",
+    "label": "대두 함유. 우유 혼입 가능",
+    "http_status": 200,
+    "verdict": {
+      "status": "BLOCK",
+      "matched": [],
+      "cross_matched": [
+        "우유"
+      ],
+      "reason": "우유 혼입 가능 (엄격 모드)",
+      "profiles": [
+        "엄격시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [
+        "대두"
+      ],
+      "cross": [
+        "우유"
+      ]
+    },
+    "elapsed_ms": 12.3
+  },
+  "check_cross_only": {
+    "ingredients": "",
+    "label": "우유를 사용한 제품과 같은 제조시설에서 제조",
+    "http_status": 200,
+    "verdict": {
+      "status": "UNVERIFIED",
+      "matched": [],
+      "cross_matched": [],
+      "reason": "함유 성분 표시 없이 '같은 제조시설' 문구만 있어 판정할 수 없습니다. 상품 뒷면 표시 확인 필요.",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [],
+      "cross": [
+        "우유"
+      ]
+    },
+    "elapsed_ms": 2.3
+  },
+  "check_blank": {
+    "ingredients": "",
+    "label": "",
+    "http_status": 200,
+    "verdict": {
+      "status": "UNVERIFIED",
+      "matched": [],
+      "cross_matched": [],
+      "reason": "원재료·알레르기 정보가 없어 판정할 수 없습니다. 정보 확인 필요.",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [],
+      "cross": []
+    },
+    "elapsed_ms": 2.7
+  },
+  "check_english": {
+    "ingredients": "milk, wheat flour",
+    "label": "",
+    "http_status": 200,
+    "verdict": {
+      "status": "PASS",
+      "matched": [],
+      "cross_matched": [],
+      "reason": "회피 알레르겐 미검출",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [],
+      "cross": []
+    },
+    "elapsed_ms": 2.4
+  },
+  "check_non_ingredient": {
+    "ingredients": "상세페이지 참고",
+    "label": "",
+    "http_status": 200,
+    "verdict": {
+      "status": "PASS",
+      "matched": [],
+      "cross_matched": [],
+      "reason": "회피 알레르겐 미검출",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [],
+      "cross": []
+    },
+    "elapsed_ms": 23.8
+  },
+  "check_negative": {
+    "ingredients": "",
+    "label": "우유 미함유",
+    "http_status": 200,
+    "verdict": {
+      "status": "BLOCK",
+      "matched": [
+        "우유"
+      ],
+      "cross_matched": [],
+      "reason": "우유 함유",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [
+        "우유"
+      ],
+      "cross": []
+    },
+    "elapsed_ms": 22.0
+  },
+  "check_label_non_ingredient": {
+    "ingredients": "",
+    "label": "상세페이지 참고",
+    "http_status": 200,
+    "verdict": {
+      "status": "UNVERIFIED",
+      "matched": [],
+      "cross_matched": [],
+      "reason": "원재료·알레르기 정보가 없어 판정할 수 없습니다. 정보 확인 필요.",
+      "profiles": [
+        "우유시험"
+      ],
+      "avoid": [
+        "우유"
+      ],
+      "contains": [],
+      "cross": []
+    },
+    "elapsed_ms": 2.6
+  },
+  "unsupported_profile": {
+    "status": 422,
+    "response": {
+      "detail": "관리 대상 19종에 없는 알레르겐: ['아몬드']"
+    }
+  },
+  "page_overwrite": {
+    "before": {
+      "id": "1000015702",
+      "name": "[선물세트] 신라명과 마드렌 30개 세트 420g",
+      "price": 16900,
+      "category": "베이커리>디저트",
+      "allergy_label": "-밀, 계란, 대두, 우유 함유",
+      "ingredients": "",
+      "verified": true
+    },
+    "after": {
+      "id": "1000015702",
+      "name": "[선물세트] 신라명과 마드렌 30개 세트 420g",
+      "price": null,
+      "category": "",
+      "allergy_label": "",
+      "ingredients": "",
+      "verified": false
+    }
+  }
+}

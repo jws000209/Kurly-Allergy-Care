@@ -133,6 +133,14 @@ def _score(product: dict, terms: list[str]) -> int:
 STRONG_MATCH = 2  # 상품명이나 단일 소분류가 맞는 경우
 
 
+def replacement_terms(item: dict) -> list[str]:
+    """묶인 분류의 다른 종류로 교체하지 않는다. 종류가 불명확하면 자동 교체를 생략한다."""
+    leaf = item["category"].rpartition(">")[2]
+    if "/" not in leaf:
+        return [item["category"]]
+    return [part for part in leaf.split("/") if _term_score(item, part) >= STRONG_MATCH]
+
+
 def _popularity(item: dict) -> tuple:
     """같은 관련도 안에서의 순서: 1순위 후기 수(많은 순), 2순위 판매량 순위(높은 순). 가격은 쓰지 않는다."""
     reviews = item.get("review_count")

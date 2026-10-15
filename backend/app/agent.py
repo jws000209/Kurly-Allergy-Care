@@ -52,6 +52,11 @@ def parse_intent(state: CartState) -> dict:
     members = db.list_members(state["user_id"])
     parsed, parser = intent_parser.parse(state["message"], [m["name"] for m in members], state.get("cart", []),
                                          profiles.mention_vocabulary(members), state.get("history", []))
+    # 전부 뺀 뒤 '2개로'처럼 조건만 고치는 경우에도 직전 회피 조건을 이어 쓴다.
+    if (state.get("constraints") and parsed["action"] == "create_cart"
+            and not parsed["category_or_purpose"] and not parsed["keywords"]
+            and (parsed["item_count"] is not None or parsed["budget"] is not None)):
+        parsed["action"] = "update_constraints"
     return {"intent": parsed, "parser": parser, "notes": [], "notes_after": [], "stats": {}, "reply": "", "asked": False,
             "group_summary": []}
 
@@ -275,8 +280,8 @@ def edit_cart(state: CartState) -> dict:
             cart.remove(target)
         for target in targets:
             # 교체 대상을 말하지 않았으면 같은 소분류에서 찾는다.
-            terms = [intent["to_keyword"]] if intent["to_keyword"] else [target["category"]]
-            replacement = [r for r in pick(terms, 2) if r["id"] != target["id"]][:1]
+            terms = [intent["to_keyword"]] if intent["to_keyword"] else cart_builder.replacement_terms(target)
+            replacement = [r for r in pick(terms, 2) if r["id"] != target["id"]][:1] if terms else []
             if replacement:
                 cart.extend(replacement)
                 notes.append(f"'{target['name']}' → '{replacement[0]['name']}'(으)로 바꿨어요.")
@@ -299,7 +304,8 @@ def edit_cart(state: CartState) -> dict:
     elif action == "cheaper":
         swapped = 0
         for position, item in enumerate(list(cart)):
-            cheaper = [r for r in pick([item["category"]], 1, cheap_first=True) if r["price"] < item["price"]]
+            terms = cart_builder.replacement_terms(item)
+            cheaper = [r for r in pick(terms, 1, cheap_first=True) if r["price"] < item["price"]] if terms else []
             if cheaper:
                 cart[position] = cheaper[0]
                 swapped += 1

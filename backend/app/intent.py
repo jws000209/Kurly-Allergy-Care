@@ -230,7 +230,11 @@ def parse(message: str, member_names: list[str], cart: list[dict],
                 {"members": ", ".join(member_names) or "없음", "cart": _cart_text(cart),
                  "history": _history_text(history), "message": message},
             )
-            return _clean(_drop_person_words(_ground(intent.model_dump(), message, history), message)), "llm"
+            parsed = _drop_person_words(_ground(intent.model_dump(), message, history), message)
+            # LLM이 수정 요청의 명시적인 회피 성분을 빠뜨려도 코드가 보충한다.
+            explicit, _ = _extract_exclusions(_ground_text(message, history))
+            parsed["excluded_allergens"].extend(explicit)
+            return _clean(parsed), "llm"
         except Exception:  # 모든 모델이 실패해도 시연이 이어지도록 규칙 파서로 넘긴다
             print("[intent] 모든 LLM 실패, 규칙 파서로 대체")
             return _clean(rule_parse(message, member_names, cart, mention_words)), "rule-fallback"
@@ -287,6 +291,17 @@ _VOCAB = sorted(
 )
 _EXCLUDE = re.compile(r"([가-힣·,/\s]+?)\s*(없이|빼고|제외|없는|안\s*들어|알레르기|프리)")
 _KOREAN_NUM = {"한": 1, "두": 2, "세": 3, "네": 4, "다섯": 5, "여섯": 6, "일곱": 7, "여덟": 8, "아홉": 9, "열": 10}
+
+
+def _extract_exclusions(text: str) -> tuple[list[str], str]:
+    names = []
+
+    def take(match: re.Match) -> str:
+        matched, rest = split_allergens(match.group(1))
+        names.extend(n for n in matched if n not in names)
+        return f" {rest} " if matched else match.group(0)
+
+    return names, _EXCLUDE.sub(take, text)
 
 
 _AMOUNT = re.compile(r"(\d+)\s*만\s*(?:(\d+)\s*천)?\s*원?|(\d+)\s*천\s*원|(\d[\d,]{3,})\s*원|(?<![\d가-힣])(만)\s*원")
@@ -386,6 +401,11 @@ def rule_parse(message: str, member_names: list[str], cart: list[dict],
     index = re.search(r"(\d+)\s*번", text)
     intent["item_index"] = int(index.group(1)) if index else None
 
+    # 수정 요청도 '우유 없이' 같은 추가 조건을 먼저 읽는다. 조기 반환 전에 공통 파싱한다.
+    intent["excluded_allergens"], text = _extract_exclusions(text)
+    intent.update(_budget_detail(text))
+    intent["item_count"] = _count(text)
+
     has_cart = bool(cart)
     if has_cart and "대신" in text:
         before, after = text.split("대신", 1)
@@ -406,15 +426,6 @@ def rule_parse(message: str, member_names: list[str], cart: list[dict],
         return intent
 
     # 여기부터는 생성·추가·조건 변경
-    def take_allergens(match: re.Match) -> str:
-        names, rest = split_allergens(match.group(1))
-        intent["excluded_allergens"].extend(n for n in names if n not in intent["excluded_allergens"])
-        return f" {rest} " if names else match.group(0)
-
-    text = _EXCLUDE.sub(take_allergens, text)
-
-    intent.update(_budget_detail(text))
-    intent["item_count"] = _count(text)
     terms = _terms(text)
     if terms:
         intent["category_or_purpose"], intent["keywords"] = terms[0], terms[1:]

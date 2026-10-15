@@ -49,6 +49,12 @@
       if (qty() < minEa) {
         return report(false, `최소 ${minEa}개부터 살 수 있는 상품인데 수량을 맞추지 못했어요. 열어 둔 상품 페이지에서 수량을 ${minEa}개로 바꿔 담아 주세요.`, { minEa });
       }
+      const validation = await new Promise((resolve) => {
+        chrome.runtime.sendMessage({ type: "kurly-cart-validate" }, (result) => {
+          resolve(chrome.runtime.lastError ? null : result);
+        });
+      });
+      if (!validation?.ok) return report(false, validation?.reason || "담기 전 검증에 실패했어요. 서버 연결을 확인해 주세요.");
       button.click();
       const done = await waitFor(() => {
         const text = document.body.innerText;
@@ -74,6 +80,7 @@
     user: null,
     members: [],
     selected: [], // 장보기 대상으로 고른 구성원 id
+    profileRevision: null, // 프로필·추천 조건 변경 시 과거 추천의 담기 요청을 무효화한다.
     allergens: [],
     messages: [], // {role: 'user'|'bot', text, cart?: 추천 상품, profiles?: 검증 기준 프로필}
     added: [], // 컬리 장바구니에 담은 상품 id
@@ -103,8 +110,14 @@
 
   const persist = () =>
     chrome.storage.local.set({
-      kac: { user: state.user, selected: state.selected, messages: state.messages.slice(-40), added: state.added, threadId: state.threadId },
+      kac: { user: state.user, selected: state.selected, profileRevision: state.profileRevision,
+        messages: state.messages.slice(-40), added: state.added, threadId: state.threadId },
     });
+
+  function invalidateRecommendations() {
+    state.profileRevision = newThread();
+    for (const message of state.messages) if (message.cart) message.stale = true;
+  }
 
   // ---------- 컬리 로그인 정보 읽기 ----------
   // 컬리 상단 메뉴는 로그인하면 "OOO 님", 아니면 "로그인"을 보여 준다. 클래스명이 해시라 글자로 찾는다.
@@ -201,6 +214,7 @@
     state.threadId = newThread();
     state.messages = [];
     state.added = [];
+    state.profileRevision = newThread();
     await loadMembers();
     if (!state.members.length) state.tab = "profile";
     persist();
@@ -209,6 +223,7 @@
 
   function logout() {
     Object.assign(state, { user: null, members: [], selected: [], messages: [], added: [], page: null, tab: "chat" });
+    state.profileRevision = newThread();
     persist();
     render();
   }
@@ -228,14 +243,23 @@
     state.scrollBottom = true;
     render();
     try {
+      const profileRevision = state.profileRevision;
+      const selected = [...state.selected];
+      const userId = state.user.id;
       const result = await api("/api/chat", "POST", {
-        user_id: state.user.id, thread_id: state.threadId, message: text, selected_member_ids: state.selected,
+        user_id: userId, thread_id: state.threadId, message: text, selected_member_ids: selected,
       });
       const isCartAction = result.intent.action !== "question";
+      const stale = profileRevision !== state.profileRevision || userId !== state.user?.id;
+      if (isCartAction && !stale) invalidateRecommendations();
       state.messages.push({
         role: "bot", text: result.reply,
         cart: isCartAction ? result.cart : null, profiles: result.constraints.profiles || [],
         after: isCartAction ? result.notes_after || [] : [],
+        stale,
+        validation: { user_id: userId, member_ids: result.constraints.member_ids || [],
+          excluded_allergens: result.constraints.extra_excluded || [], selected,
+          profileRevision: stale ? profileRevision : state.profileRevision },
       });
     } catch (error) {
       state.messages.push({ role: "bot", text: error.message });
@@ -255,6 +279,7 @@
     const body = { name: name.trim(), allergens, strict, relation, order, aliases };
     const saved = id ? await api(`/api/members/${id}`, "PUT", body) : await api(`/api/users/${state.user.id}/members`, "POST", body);
     if (!id) state.selected.push(saved.id);
+    invalidateRecommendations();
     state.editing = null;
     await loadMembers();
     persist();
@@ -302,6 +327,7 @@
 
   async function deleteMember(id) {
     await api(`/api/members/${id}`, "DELETE");
+    invalidateRecommendations();
     state.editing = null;
     await loadMembers();
     persist();
@@ -345,7 +371,11 @@
   }
 
   // 컬리 장바구니에 담을 수 있는 건 컬리 페이지에서 수집한 실제 상품뿐이다. 시연용 가상 상품은 검색으로 안내한다.
-  function cartButton(item) {
+  function cartButton(item, message, messageIndex) {
+    if (message.stale || !message.validation || message.validation.profileRevision !== state.profileRevision) {
+      return '<button class="mini" disabled>다시 추천받아 주세요</button>';
+    }
+    const context = `data-message-index="${messageIndex}"`;
     if (item.source === "mock") {
       return `<a class="mini-link" href="${esc(item.url)}" target="_blank" rel="noopener">컬리에서 찾기</a>`;
     }
@@ -355,15 +385,25 @@
     }
     if (state.adding[item.id]) return '<button class="mini" disabled>담는 중…</button>';
     if (state.added.includes(item.id)) {
-      return `<button class="mini" data-action="add-cart" data-id="${esc(item.id)}" data-name="${esc(item.name)}" title="한 번 더 담기">담김 ✓</button>`;
+      return `<button class="mini" data-action="add-cart" ${context} data-id="${esc(item.id)}" data-name="${esc(item.name)}" title="한 번 더 담기">담김 ✓</button>`;
     }
-    return `<button class="mini primary" data-action="add-cart" data-id="${esc(item.id)}" data-name="${esc(item.name)}">장바구니에 추가</button>`;
+    return `<button class="mini primary" data-action="add-cart" ${context} data-id="${esc(item.id)}" data-name="${esc(item.name)}">장바구니에 추가</button>`;
   }
 
-  function addToKurlyCart(id, name) {
+  async function addToKurlyCart(id, name, messageIndex) {
+    const message = state.messages[Number(messageIndex)];
+    if (!message?.cart?.some((item) => item.id === id) || message.stale || !message.validation ||
+        message.validation.profileRevision !== state.profileRevision || message.validation.user_id !== state.user?.id) {
+      return fail("프로필이 변경되었어요. 다시 추천받아 주세요.");
+    }
+    if (state.adding[id]) return;
+    // 작업 탭의 검증이 최신 선택을 읽을 수 있게 저장 완료 뒤 요청한다.
+    await persist();
+    if (state.adding[id] || message.stale || message.validation.profileRevision !== state.profileRevision) return;
     state.adding[id] = name || "상품";
     render();
-    chrome.runtime.sendMessage({ type: "kurly-add-cart", productId: id }, (response) => {
+    chrome.runtime.sendMessage({ type: "kurly-add-cart", productId: id,
+      context: { ...message.validation, product_id: id } }, (response) => {
       if (chrome.runtime.lastError || !response || !response.ok) {
         delete state.adding[id];
         fail("장바구니 담기를 시작하지 못했어요. 확장 프로그램을 새로고침해 주세요.");
@@ -417,11 +457,11 @@
   function chatView() {
     const messages = state.messages
       .map(
-        (m) => `<div class="msg ${m.role}">${esc(m.text).replace(/\n/g, "<br>")}${
+        (m, messageIndex) => `<div class="msg ${m.role}">${esc(m.text).replace(/\n/g, "<br>")}${
           m.goCart ? '<div><button class="mini primary go-cart" data-action="go-cart">장바구니 보기</button></div>' : ""
         }${
           m.cart && m.cart.length
-            ? `<div class="recs-title">추천 상품</div><ol class="items">${itemRows(m.cart, cartButton)}</ol>${
+            ? `<div class="recs-title">추천 상품</div><ol class="items">${itemRows(m.cart, (item) => cartButton(item, m, messageIndex))}</ol>${
                 (m.after || []).map((n) => `<p class="after-note">${esc(n)}</p>`).join("")}`
             : ""
         }</div>`
@@ -551,12 +591,13 @@
     toggle: () => { state.open = !state.open; render(); },
     tab: (el) => { state.tab = el.dataset.tab; state.editing = null; render(); },
     reset: () => { state.threadId = newThread(); state.messages = []; persist(); render(); },
-    "add-cart": (el) => addToKurlyCart(el.dataset.id, el.dataset.name),
+    "add-cart": (el) => addToKurlyCart(el.dataset.id, el.dataset.name, el.dataset.messageIndex),
     "go-cart": goCart,
     send: () => send(state.draft),
     "toggle-member": (el) => {
       const id = Number(el.dataset.id);
       state.selected = state.selected.includes(id) ? state.selected.filter((s) => s !== id) : [...state.selected, id];
+      invalidateRecommendations();
       persist();
       checkPage();
     },
@@ -712,7 +753,15 @@
   }
   // 다른 컬리 탭(장바구니 화면)에서 바뀐 담김 표시를 이 탭에도 반영한다
   chrome.storage.onChanged.addListener((changes, area) => {
-    const added = area === "local" && changes.kac && changes.kac.newValue && changes.kac.newValue.added;
+    const saved = area === "local" && changes.kac?.newValue;
+    if (saved && saved.user?.id === state.user?.id && saved.profileRevision !== state.profileRevision) {
+      state.selected = saved.selected || [];
+      state.profileRevision = saved.profileRevision;
+      for (const message of state.messages) if (message.cart) message.stale = true;
+      if (state.user) loadMembers().then(checkPage).catch(() => {});
+      render();
+    }
+    const added = saved && saved.added;
     if (!added || JSON.stringify(added) === JSON.stringify(state.added)) return;
     state.added = added;
     render();
@@ -725,6 +774,7 @@
     Object.assign(state, {
       user: saved.user || null, selected: saved.selected || [], messages: saved.messages || [],
       added: saved.added || [], threadId: saved.threadId || newThread(),
+      profileRevision: saved.profileRevision || newThread(),
     });
     render();
     try {

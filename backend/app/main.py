@@ -172,6 +172,32 @@ class MinEaBody(BaseModel):
     min_ea: int = Field(ge=1)
 
 
+class CartValidationBody(BaseModel):
+    user_id: int
+    member_ids: list[int] = Field(default_factory=list, max_length=50)
+    product_id: str = Field(min_length=1, max_length=100)
+    excluded_allergens: list[str] = Field(default_factory=list, max_length=19)
+
+
+@app.post("/api/cart/validate")
+def validate_cart_product(body: CartValidationBody):
+    """담기 직전, 클라이언트의 과거 판정 대신 최신 프로필과 DB 상품으로 검사한다. 저장은 하지 않는다."""
+    if db.get_user(body.user_id) is None:
+        raise HTTPException(404, "사용자를 찾을 수 없습니다")
+    members = db.list_members(body.user_id)
+    if set(body.member_ids) - {m["id"] for m in members}:
+        raise HTTPException(422, "프로필이 변경되었어요. 다시 추천받아 주세요.")
+    extra = _valid_allergens(body.excluded_allergens)
+    if not body.member_ids and not extra:
+        raise HTTPException(422, "장보기 프로필을 선택하고 다시 추천받아 주세요.")
+    product = db.get_product(body.product_id)
+    if product is None:
+        raise HTTPException(404, "상품 정보를 찾을 수 없어 담을 수 없어요.")
+    combined = combine_profiles([m for m in members if m["id"] in body.member_ids], extra)
+    return {**judge(product, combined["avoid"], combined["strict"]),
+            "profiles": combined["profiles"], "avoid": combined["avoid"]}
+
+
 @app.post("/api/products/{product_id}/min-ea")
 def product_min_ea(product_id: str, body: MinEaBody):
     """장바구니 담기 중 컬리 상품 페이지에서 읽은 실제 최소 구매 수량을 상품 DB에 반영한다 (가격·예산 계산용)."""
