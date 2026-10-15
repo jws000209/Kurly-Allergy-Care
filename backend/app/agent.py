@@ -29,7 +29,8 @@ EDIT_ACTIONS = {"remove_item", "replace_item", "add_item", "cheaper"}
 AGAIN_PATTERN = re.compile(r"다른\s*(거|걸|것|상품|종류)|다시\s*(추천|골라|찾아)|또\s*(추천|골라)|새로\s*(추천|골라)")
 
 HELP_TEXT = ("가족 프로필의 알레르기 조건에 맞춰 상품을 추천해 드려요.\n"
-             "예) \"첫째 간식 2만원 이내 5개\", \"2번 상품 빼줘\", \"과자 대신 요거트\", \"더 저렴하게\"")
+             "예) \"첫째 간식 2만원 이내 5개\", \"요거트 추천해줘\", \"더 저렴하게\"\n"
+             "원하는 상품의 '장바구니에 추가' 버튼을 눌러 담아 주세요.")
 
 
 class CartState(TypedDict, total=False):
@@ -319,10 +320,10 @@ def edit_cart(state: CartState) -> dict:
         notes.append("어떤 상품인지 번호로 알려 주세요. 예) \"2번 상품 빼줘\"")
         return []
 
-    if action == "remove_item":
+    if action == "remove_item":  # Optional cleanup of the chatbot's recommendation list.
         for target in removed_targets():
             cart.remove(target)
-            notes.append(f"'{target['name']}'을(를) 뺐어요.")
+            notes.append(f"'{target['name']}'을(를) 추천 목록에서 숨겼어요.")
 
     elif action == "replace_item":
         targets = removed_targets()
