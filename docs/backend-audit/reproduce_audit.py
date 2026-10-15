@@ -23,7 +23,7 @@ os.environ['KAC_SEED_PATH'] = str(WORK / 'empty.json')
 os.environ['KAC_LIVE_MIN_EA_PATH'] = str(WORK / 'min-ea.json')
 
 import httpx
-from app import cart_builder, recommender
+from app import cart_composer, recommender
 from app.allergens import ALLERGEN_NAMES
 from app.extractor import NO_LABEL_REVIEWED, extract
 from app.rule_engine import judge
@@ -54,7 +54,7 @@ def algorithm_probes():
     pool = [{'id': str(i), 'name': str(p), 'price': p, 'category': 'same', 'score': 3}
             for i, p in enumerate([1000, 3000, 5000, 10000])]
     budget = {'amount': 8000, 'mode': 'around'}
-    picked, notes = cart_builder.build(pool, 2, budget)
+    picked, notes = cart_composer.build(pool, 2, budget)
     valid = [[p['price'] for p in combo] for combo in itertools.combinations(pool, 2)
              if 6800 <= sum(p['price'] for p in combo) <= 9200]
     probe('around budget finds feasible 2-item basket', 2, len(picked),

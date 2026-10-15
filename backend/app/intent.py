@@ -12,7 +12,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from .allergens import ALLERGEN_NAMES, normalize_allergen, split_allergens
-from .cart_builder import PURPOSE_MAP
+from .cart_composer import PURPOSE_MAP
 
 # langchain-google-genai가 Gemini를 부를 때마다 google-genai가 남기는 AFC(자동 함수 호출) 안내 경고.
 # 우리는 그 기능을 쓰지 않고 동작에도 영향이 없어 숨긴다 (서버 창·Colab 출력이 지저분해지지 않게).

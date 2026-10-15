@@ -1,4 +1,4 @@
-from app import agent, cart_builder
+from app import agent, cart_composer
 from app.allergen_context import is_truncated, valid_ingredients
 from app.allergen_dictionary import get_dictionary
 
@@ -19,10 +19,10 @@ def test_miso_does_not_match_inside_unrelated_ingredients():
 
 def test_does_not_replenish_automatically_and_keeps_internal_reasons(monkeypatch):
     products = {i: {'id': i, 'name': i, 'price': 100} for i in ['old', 'bad', 'good']}
-    monkeypatch.setattr(cart_builder.db, 'get_product', products.get)
-    monkeypatch.setattr(cart_builder, 'judge', lambda p, *args: {'status': 'PASS' if p['id'] == 'good' else 'UNVERIFIED', 'reason': 'GPT internal', 'rag': {'assessment': {'reason': 'OCR internal'}}})
-    monkeypatch.setattr(cart_builder, 'to_item', lambda p, v: p)
-    monkeypatch.setattr(cart_builder, 'search', lambda *args, **kwargs: __import__('pytest').fail('automatic replacement search'))
+    monkeypatch.setattr(cart_composer.db, 'get_product', products.get)
+    monkeypatch.setattr(cart_composer, 'judge', lambda p, *args: {'status': 'PASS' if p['id'] == 'good' else 'UNVERIFIED', 'reason': 'GPT internal', 'rag': {'assessment': {'reason': 'OCR internal'}}})
+    monkeypatch.setattr(cart_composer, 'to_item', lambda p, v: p)
+    monkeypatch.setattr(cart_composer, 'search', lambda *args, **kwargs: __import__('pytest').fail('automatic replacement search'))
     state = {'constraints': {'avoid': ['새우'], 'strict': False, 'terms': ['라면'], 'budget': 500, 'profiles': ['아들', '아들2']}, 'intent': {'action': 'create_cart'}, 'cart': [products['old']], 'user_id': 1}
     result = agent.revalidate(state)
     assert result['cart'] == []
@@ -51,7 +51,7 @@ def test_partial_page_check_keeps_known_declaration():
 
 
 def test_final_empty_cart_clears_stale_count_notes(monkeypatch):
-    monkeypatch.setattr(cart_builder, 'revalidate', lambda *a, **kw: ([], []))
+    monkeypatch.setattr(cart_composer, 'revalidate', lambda *a, **kw: ([], []))
     result = agent.revalidate({'constraints': {'avoid': ['새우'], 'strict': True, 'budget': None},
                               'cart': [{'id': 'x'}], 'notes_after': ['추천 상품 5개'], 'intent': {'action': 'remove_item'}})
     assert result['cart'] == [] and result['notes_after'] == []

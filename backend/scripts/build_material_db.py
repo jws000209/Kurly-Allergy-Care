@@ -31,6 +31,7 @@ VISION = {
     "파트1": DATA / "알레르기판독_파트1" / "work" / "vision_part1.jsonl",
     "파트2": DATA / "알레르기 파트 모으기" / "vision_part2.json",
     "파트4": DATA / "알레르기 파트 모으기" / "vision_part4.jsonl",
+    "나머지4370": DATA / "알레르기 파트 모으기" / "vision_rest_4370.jsonl",
 }
 
 

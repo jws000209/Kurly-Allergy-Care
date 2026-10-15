@@ -184,21 +184,21 @@ def test_http_check_uses_rag(monkeypatch, tmp_path):
 
 
 def test_cart_search_and_final_revalidation(monkeypatch, tmp_path):
-    from app import db, cart_builder
+    from app import db, cart_composer
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "cart.sqlite3")
     monkeypatch.setattr(db, "SEED_PATH", tmp_path / "missing.json")
     db.init_db()
     db.upsert_product({"id": "rice", "name": "쌀과자", "price": 1000, "category": "간식>과자", "ingredients": "쌀, 설탕"})
     db.upsert_product({"id": "milk", "name": "우유과자", "price": 1000, "category": "간식>과자", "ingredients": "우유"})
     monkeypatch.setattr(intent, "invoke_with_fallback", lambda *a: pytest.fail("candidate search called GPT"))
-    candidates, stats = cart_builder.search(["과자"], ["우유"], False)
+    candidates, stats = cart_composer.search(["과자"], ["우유"], False)
     assert [c["id"] for c in candidates] == ["rice"]
     mock_answer(monkeypatch)
     diagnostics = []
-    items, _ = cart_builder.revalidate(candidates, ["우유"], False, diagnostics=diagnostics)
+    items, _ = cart_composer.revalidate(candidates, ["우유"], False, diagnostics=diagnostics)
     assert len(items) == 1 and "rag" not in items[0]
     assert diagnostics[0]["verdict"]["rag"]["mode"] == "generated"
     rag._generate.cache_clear()
     monkeypatch.setattr(intent, "invoke_with_fallback", lambda *a: (_ for _ in ()).throw(RuntimeError("outage")))
-    items, notes = cart_builder.revalidate(candidates, ["우유"], False)
+    items, notes = cart_composer.revalidate(candidates, ["우유"], False)
     assert items == [] and notes

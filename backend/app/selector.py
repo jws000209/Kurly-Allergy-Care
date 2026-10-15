@@ -4,12 +4,12 @@
 - 새 추천(처음 요청·'다른 거 추천해줘')마다 쓴다. 후보가 개수보다 적으면 고를 게 없어 부르지 않는다.
   (10/07 전: 상황·취향이 있을 때만 써서 '짜장'처럼 단순한 요청은 늘 같은 점수 순서로 나왔다)
 - 같은 대화에서 앞에서 보여 준 상품은 '(앞에서 추천함)'으로 표시하고 되도록 고르지 않게 한다.
-- 개수·예산은 코드(cart_builder.build)가 다시 맞추고, 담은 뒤에는 전체를 재검증한다.
+- 개수·예산은 코드(cart_composer.build)가 다시 맞추고, 담은 뒤에는 전체를 재검증한다.
 - LLM 호출이 실패하거나 쓸 만한 답이 없으면 None을 돌려주고, 호출한 쪽이 점수 순으로 고른다.
 """
 from pydantic import BaseModel, Field
 
-from . import cart_builder, intent as intent_parser
+from . import cart_composer, intent as intent_parser
 
 SHORTLIST = 10   # LLM에 보여 줄 후보 수 (검색 점수 상위)
 WHY_LIMIT = 40   # 추천 이유 글자 수 상한
@@ -76,7 +76,7 @@ def select(candidates: list[dict], count: int, budget, request: str,
     try:
         result, model = intent_parser.invoke_with_fallback(
             lambda llm: prompt | llm.with_structured_output(Picks),
-            {"request": request, "count": count, "profiles": ", ".join(profiles or []) or "정하지 않음", "budget": cart_builder.describe_budget(budget) or "없음",
+            {"request": request, "count": count, "profiles": ", ".join(profiles or []) or "정하지 않음", "budget": cart_composer.describe_budget(budget) or "없음",
              "situation": (situation or {}).get("name") or "없음",
              "situation_criteria": str({k: (situation or {}).get(k) for k in ("prefer", "avoid", "why", "source")}),
              "preferences": ", ".join(preferences or []) or "없음",
@@ -101,7 +101,7 @@ def select(candidates: list[dict], count: int, budget, request: str,
     ranked = [{**item, "score": top + len(chosen) - i} for i, item in enumerate(chosen)]
     chosen_ids = {item["id"] for item in chosen}
     rest = [item for item in candidates if item["id"] not in chosen_ids]
-    items, notes = cart_builder.build(ranked + rest, count, budget)
+    items, notes = cart_composer.build(ranked + rest, count, budget)
     for item in items:
         item["score"] = next((c.get("score", 0) for c in candidates if c["id"] == item["id"]), 0)
     return items, notes, model

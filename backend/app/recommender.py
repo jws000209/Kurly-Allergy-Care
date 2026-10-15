@@ -100,6 +100,8 @@ def content_scores(products: list[dict], history: dict[str, float]) -> dict[str,
 
 def score_products(products: list[dict], interactions: list[dict], user_id: int,
                    mode: str = "hybrid", reference_product_id: str | None = None) -> dict[str, dict]:
+    # API compatibility: 'popularity' means no personalization signal; score stays zero.
+    # personalize() then uses review_count and the sales-volume ranking sales_rank as tie-breakers.
     if mode not in MODES:
         raise ValueError("Unknown recommendation mode")
     matrix = interaction_matrix(interactions)

@@ -4,7 +4,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from app import agent, cart_builder, db, intent, recommender
+from app import agent, cart_composer, db, intent, recommender
 from app.main import app
 
 
@@ -132,9 +132,9 @@ def test_chat_uses_personalization_and_preserves_explicit_price_sort(catalog):
     user, other, member = catalog
     for uid, pid in [(user["id"], "a"), (other["id"], "a"), (other["id"], "b")]:
         db.record_interaction(uid, pid, "purchase")
-    items, _ = cart_builder.search(["주스"], ["우유"], True, user_id=user["id"])
+    items, _ = cart_composer.search(["주스"], ["우유"], True, user_id=user["id"])
     assert [i["id"] for i in items].index("b") < [i["id"] for i in items].index("c")
-    items, _ = cart_builder.search(["주스"], ["우유"], True, user_id=user["id"], cheap_first=True)
+    items, _ = cart_composer.search(["주스"], ["우유"], True, user_id=user["id"], cheap_first=True)
     assert items[0]["price"] == 1000
     result = agent.chat(user["id"], "personalized", "주스 2개", [member["id"]])
     assert {i["id"] for i in result["cart"]} == {"a", "b"}  # 장보기 대화에서는 재구매 후보도 유지.

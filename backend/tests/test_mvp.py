@@ -87,7 +87,7 @@ def test_kurly_seed_file():
 
 def test_score_composite_category():
     """'치킨/피자/핫도그/만두'처럼 묶인 소분류만 겹치는 상품은 '피자'를 콕 집은 요청에 강하게 걸리면 안 된다."""
-    from app.cart_builder import STRONG_MATCH, _score
+    from app.cart_composer import STRONG_MATCH, _score
     category = "간편식/밀키트/샐러드>치킨/피자/핫도그/만두"
     assert _score({"name": "[비비고] 청양 고기만두", "category": category}, ["피자"]) < STRONG_MATCH
     assert _score({"name": "[고메] 콤비네이션 피자", "category": category}, ["피자"]) >= STRONG_MATCH
@@ -503,7 +503,7 @@ def test_non_allergen_contains_statement_and_reviewed_blank():
 def test_min_purchase_quantity_counts_in_price(tmp_path, monkeypatch):
     """컬리 최소 구매 수량(예: 2봉)만큼 장바구니에 담기므로 가격·예산은 곱한 금액으로 계산한다."""
     import json
-    from app import cart_builder
+    from app import cart_composer
 
     seed = tmp_path / "seed.json"
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "minea.sqlite3")
@@ -514,11 +514,11 @@ def test_min_purchase_quantity_counts_in_price(tmp_path, monkeypatch):
                                  {**base, "id": "m1", "name": "고기만두", "price": 7000,
                                   "url": "https://www.kurly.com/goods/m1"}]), encoding="utf-8")
     db.init_db()
-    items, _ = cart_builder.search(["만두"], ["우유"], False)
+    items, _ = cart_composer.search(["만두"], ["우유"], False)
     two = next(i for i in items if i["id"] == "m2")
     assert two["price"] == 11960 and two["unit_price"] == 5980 and two["min_ea"] == 2
-    picked, notes = cart_builder.build(items, 2, 15000)   # 5,980원짜리도 실제로는 11,960원이라 둘 다는 못 담음
-    assert cart_builder.total(picked) <= 15000
+    picked, notes = cart_composer.build(items, 2, 15000)   # 5,980원짜리도 실제로는 11,960원이라 둘 다는 못 담음
+    assert cart_composer.total(picked) <= 15000
 
 
 def test_live_min_ea_from_kurly_page(tmp_path, monkeypatch):
@@ -542,13 +542,13 @@ def test_live_min_ea_from_kurly_page(tmp_path, monkeypatch):
 
 def test_ranking_by_reviews_then_sales_rank():
     """같은 관련도 안에서는 후기 수 → 판매량 순위로 추천하고 가격은 순서에 쓰지 않는다. 소분류가 맞는 상품이 이름만 맞는 상품보다 앞선다."""
-    from app.cart_builder import _popularity, _score
+    from app.cart_composer import _review_rank_order, _score
 
     items = [{"id": "a", "review_count": 100, "sales_rank": 5, "price": 1000},
              {"id": "b", "review_count": 900, "sales_rank": 50, "price": 9000},
              {"id": "c", "review_count": 900, "sales_rank": 3, "price": 9900},
              {"id": "d", "review_count": None, "sales_rank": 1, "price": 500}]
-    assert [i["id"] for i in sorted(items, key=_popularity)] == ["c", "b", "a", "d"]
+    assert [i["id"] for i in sorted(items, key=_review_rank_order)] == ["c", "b", "a", "d"]
     fruit = {"name": "샤인머스캣 1kg", "category": "과일/견과/쌀>국산과일"}
     sauce = {"name": "[참소스] 과일품은 참소스", "category": "면/양념/오일>식초/소스/드레싱"}
     assert _score(fruit, ["과일"]) > _score(sauce, ["과일"])
@@ -589,7 +589,7 @@ def test_generic_words_are_not_product_types():
 def test_strong_matches_are_not_padded_with_weak_ones(tmp_path, monkeypatch):
     """'피자'를 원했는데 피자가 하나뿐이면, 같은 묶음 분류의 만두로 채우지 않고 부족하다고 알린다. '간식' 같은 목적어는 그대로."""
     import json
-    from app import cart_builder
+    from app import cart_composer
 
     seed = tmp_path / "seed.json"
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "pad.sqlite3")
@@ -600,16 +600,16 @@ def test_strong_matches_are_not_padded_with_weak_ones(tmp_path, monkeypatch):
                                  "source": "kurly", "url": f"https://www.kurly.com/goods/{r['id']}"} for r in rows]),
                     encoding="utf-8")
     db.init_db()
-    cands, _ = cart_builder.search(["피자"], ["우유"], False)
-    items, notes = cart_builder.build(cands, 5, None)
+    cands, _ = cart_composer.search(["피자"], ["우유"], False)
+    items, notes = cart_composer.build(cands, 5, None)
     assert [i["id"] for i in items] == ["p"] and "1개뿐" in notes[0]
-    cands, _ = cart_builder.search(["만두"], ["우유"], False)
+    cands, _ = cart_composer.search(["만두"], ["우유"], False)
     assert len(cands) == 4 and all(c["id"].startswith("d") for c in cands)
 
 
 def test_relevance_rules_from_real_data_audit():
     """10/07 실제 데이터로 55개 요청을 점검하며 찾은 오탐을 막는 규칙."""
-    from app.cart_builder import STRONG_MATCH, _score
+    from app.cart_composer import STRONG_MATCH, _score
 
     def s(name, category, term):
         return _score({"name": name, "category": category}, [term])
@@ -651,7 +651,7 @@ def test_shortage_note_goes_below_the_list(tmp_path, monkeypatch):
 
 def test_budget_modes():
     """예산을 상한·하한·안팎·범위·개당으로 구분하고, 조건을 지키면서 인기 순서를 최대한 따른다."""
-    from app import cart_builder
+    from app import cart_composer
     from app.intent import _budget_detail
 
     assert _budget_detail("밀키트 1개 2만원 넘게")["budget_mode"] == "min"
@@ -663,7 +663,7 @@ def test_budget_modes():
     # 인기순(앞에 있을수록 인기) 후보, 가격만 다름
     pool = [{"id": str(p), "price": p, "category": f"c{i % 3}", "score": 3} for i, p in
             enumerate([14900, 9000, 21000, 19500, 5500, 6000, 25000, 7000])]
-    pick = lambda count, budget: [i["price"] for i in cart_builder.build(pool, count, budget)[0]]
+    pick = lambda count, budget: [i["price"] for i in cart_composer.build(pool, count, budget)[0]]
     assert pick(1, {"amount": 20000, "mode": "min"}) == [21000]                   # 2만원 넘게
     assert 17000 <= pick(1, {"amount": 20000, "mode": "around"})[0] <= 23000      # 2만원 안팎 (±15%, 그 안에서는 인기순)
     assert pick(1, {"amount": 20000, "mode": "max"}) == [14900]                   # 2만원 이내 → 가장 인기 있는 것
@@ -671,7 +671,7 @@ def test_budget_modes():
     picked = pick(5, {"amount": 45000, "mode": "max"})        # 가장 싼 5개 합이 42,400원 → 4.5만원이면 5개 가능
     assert len(picked) == 5 and sum(picked) <= 45000            # 인기순으로 담다 넘친다고 개수를 줄이지 않음
     assert len(pick(5, {"amount": 30000, "mode": "max"})) == 4  # 3만원으로는 정말 4개가 최대
-    items, notes = cart_builder.build(pool, 3, {"amount": 5000, "mode": "max"})
+    items, notes = cart_composer.build(pool, 3, {"amount": 5000, "mode": "max"})
     assert items == [] and "가장 싼 상품: 5,500원" in notes[0]                     # 0개면 왜 없는지
     assert "보시겠어요" not in " ".join(notes)
 
@@ -704,7 +704,7 @@ def test_profile_named_like_product():
 
 def test_lookalike_words_do_not_match():
     """'콜라' 요청에 쇼콜라·콜라겐·콜라비는 콜라가 아니다 (10/07 실제 화면: 콜라 → 쇼콜라 4개)."""
-    from app.cart_builder import _score
+    from app.cart_composer import _score
     assert _score({"name": "[파스키에] 팡오쇼콜라 (45g X 6개입)", "category": "베이커리>식빵/모닝빵/베이글"}, ["콜라"]) == 0
     assert _score({"name": "[니아르] 퓨어 콜라겐 28정", "category": "건강식품>체중관리"}, ["콜라"]) == 0
     assert _score({"name": "펩시 제로슈거 콜라 355mL", "category": "생수/음료>탄산/스포츠음료"}, ["콜라"]) >= 2
@@ -725,7 +725,7 @@ def test_check_rejects_unknown_or_empty_profiles():
 
 def test_budget_search_backtracks_to_find_valid_combination():
     """앞 후보를 골라 막혀도 되돌아가서 예산 안에 드는 조합을 찾는다 (1,000원은 빼고 3,000+5,000원)."""
-    from app.cart_builder import _pick_within
+    from app.cart_composer import _pick_within
     order = [{"price": p, "id": str(p)} for p in (1000, 3000, 5000, 10000)]
     picked = _pick_within(order, 2, 6800, 9200)
     assert picked is not None and sorted(i["price"] for i in picked) == [3000, 5000]
@@ -750,7 +750,7 @@ def test_official_table_basis_when_no_ingredients():
 def test_search_alias_maps_to_existing_product_name(tmp_path, monkeypatch):
     """사용자 말('훠궈소스', '오뎅')을 DB 상품명에 있는 말로 바꿔 찾는다 (10/14: 훠궈소스는 DB에 없고 마라탕소스가 있음)."""
     import json
-    from app import cart_builder
+    from app import cart_composer
 
     seed = tmp_path / "seed.json"
     monkeypatch.setattr(db, "DB_PATH", tmp_path / "alias.sqlite3")
@@ -760,6 +760,6 @@ def test_search_alias_maps_to_existing_product_name(tmp_path, monkeypatch):
                                  "allergy_label": "", "image": "", "source": "kurly",
                                  "url": f"https://www.kurly.com/goods/{i}"} for i, n in rows]), encoding="utf-8")
     with TestClient(app):
-        assert cart_builder.missing_terms(["훠궈소스"]) == []
-        assert cart_builder.missing_terms(["오뎅"]) == []
-        assert cart_builder.missing_terms(["없는재료XYZ"]) == ["없는재료XYZ"]
+        assert cart_composer.missing_terms(["훠궈소스"]) == []
+        assert cart_composer.missing_terms(["오뎅"]) == []
+        assert cart_composer.missing_terms(["없는재료XYZ"]) == ["없는재료XYZ"]

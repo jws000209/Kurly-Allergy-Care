@@ -14,7 +14,7 @@ from typing import TypedDict
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
-from . import cart_builder, db, intent as intent_parser, profiles, selector, situations
+from . import cart_composer, db, intent as intent_parser, profiles, selector, situations
 from .rule_engine import BLOCK, PASS, UNVERIFIED, combine_profiles
 
 CART_ACTIONS = {"create_cart", "update_constraints"}
@@ -207,7 +207,7 @@ def ask_profile(state: CartState) -> dict:
 def _group_counts(groups: list[dict], total: int | None) -> list[int]:
     """묶음별 개수. 묶음에 개수가 없으면 전체 개수를 나누고, 그것도 없으면 묶음마다 2개(묶음이 하나면 5개)."""
     if len(groups) == 1:
-        return [groups[0]["count"] or total or cart_builder.DEFAULT_COUNT]
+        return [groups[0]["count"] or total or cart_composer.DEFAULT_COUNT]
     if all(g["count"] for g in groups):
         return [g["count"] for g in groups]
     if total:
@@ -230,7 +230,7 @@ def build_cart(state: CartState) -> dict:
     shown = dict(state.get("shown") or {})
     for group, count in zip(groups, counts):
         prefix = f"[{group['label']}] " if multi else ""
-        missing = cart_builder.missing_terms(group["terms"])
+        missing = cart_composer.missing_terms(group["terms"])
         if group["terms"] and len(missing) == len(group["terms"]):
             # 상품 DB에 아예 없는 유형은 다른 상품으로 몰래 채우지 않고 알린다
             notes.append(f"{prefix}'{', '.join(missing)}'은(는) 지금 상품 DB에 없어서 추천하지 못했어요. "
@@ -239,8 +239,8 @@ def build_cart(state: CartState) -> dict:
             continue
         if missing:
             notes.append(f"{prefix}'{', '.join(missing)}'에 맞는 상품은 지금 상품 DB에 없어 나머지 조건으로 골랐어요.")
-        budget = cart_builder.split_budget(c["budget"], count / sum(counts))  # 총액 예산은 개수 비율로 나눈다
-        candidates, group_stats = cart_builder.search(group["terms"], c["avoid"], c["strict"],
+        budget = cart_composer.split_budget(c["budget"], count / sum(counts))  # 총액 예산은 개수 비율로 나눈다
+        candidates, group_stats = cart_composer.search(group["terms"], c["avoid"], c["strict"],
                                                       exclude_ids={i["id"] for i in cart}, situation=c.get("situation"),
                                                       user_id=state["user_id"])
         # 같은 대화에서 같은 요청(종류·상황)으로 이미 보여 준 상품은 뒤로 돌린다 → 다시 요청하면 새 상품부터
@@ -262,7 +262,7 @@ def build_cart(state: CartState) -> dict:
             items, group_notes, model = picked
             picked_by.append(model)
         else:
-            items, group_notes = cart_builder.build(candidates, count, budget)
+            items, group_notes = cart_composer.build(candidates, count, budget)
         if not candidates:
             group_notes = ["조건에 맞으면서 알레르기 검증을 통과한 상품이 없어요. 상품 유형을 바꿔 보시겠어요?"]
         for key in stats:
@@ -289,19 +289,19 @@ def edit_cart(state: CartState) -> dict:
     index = intent["item_index"]
 
     def pick(terms: list[str], how_many: int, cheap_first: bool = False,
-             min_score: int = cart_builder.STRONG_MATCH) -> list[dict]:
+             min_score: int = cart_composer.STRONG_MATCH) -> list[dict]:
         """장바구니에 없는 PASS 후보 중 남은 예산 안에서 고른다. (더 싼 상품을 찾을 땐 예산 검사 생략)
 
         '피자로 바꿔줘'처럼 콕 집어 말한 상품은 상품명·소분류가 맞는 것만 고른다 (min_score).
         """
-        candidates, _ = cart_builder.search(terms, c["avoid"], c["strict"], exclude_ids={item["id"] for item in cart},
+        candidates, _ = cart_composer.search(terms, c["avoid"], c["strict"], exclude_ids={item["id"] for item in cart},
                                             cheap_first=cheap_first, min_score=min_score, situation=c.get("situation"),
                                             user_id=state["user_id"])
         chosen = []
         for candidate in candidates:
             if len(chosen) >= how_many:
                 break
-            if cheap_first or cart_builder.fits(cart + chosen, candidate, c["budget"]):
+            if cheap_first or cart_composer.fits(cart + chosen, candidate, c["budget"]):
                 chosen.append(candidate)
         return chosen
 
@@ -368,11 +368,11 @@ def revalidate(state: CartState) -> dict:
     c = state["constraints"]
     diagnostics = []
     original = state.get("cart", [])
-    cart, _ = cart_builder.revalidate(original, c["avoid"], c["strict"], diagnostics=diagnostics)
+    cart, _ = cart_composer.revalidate(original, c["avoid"], c["strict"], diagnostics=diagnostics)
     # Product-level rejection reasons stay in diagnostics, not chatbot messages.
     notes = []
-    _, (lo, hi) = cart_builder.budget_band(c["budget"])
-    if cart and not lo <= cart_builder.total(cart) <= hi:
+    _, (lo, hi) = cart_composer.budget_band(c["budget"])
+    if cart and not lo <= cart_composer.total(cart) <= hi:
         cart = []
         notes.append("검증된 상품으로는 요청하신 예산 조건을 맞추지 못했어요.")
     notes_after = state.get('notes_after', [])
@@ -397,7 +397,7 @@ def respond(state: CartState) -> dict:
         lines.append(f"상황: {c['situation']['name']}")
     if cart:
         groups = f" ({' · '.join(state['group_summary'])})" if state.get("group_summary") else ""
-        budget = f" · {cart_builder.describe_budget(c['budget'])}" if c["budget"] else ""
+        budget = f" · {cart_composer.describe_budget(c['budget'])}" if c["budget"] else ""
         lines.append(f"추천 상품 {len(cart)}개{groups}{budget}")
     lines.extend(state.get("notes", []))
     if not cart:

@@ -1,5 +1,5 @@
 import pytest
-from app import situations, intent, cart_builder, db
+from app import situations, intent, cart_composer, db
 
 
 @pytest.mark.parametrize("text,expected", [
@@ -36,9 +36,9 @@ def test_situation_never_removes_explicit_item_or_candy():
     ]:
         db.upsert_product({"id": pid, "name": name, "price": 1000, "category": category, "ingredients": ingredients})
     situation = situations.build("소풍")
-    ramen, stats = cart_builder.search(["컵라면"], ["우유"], False, situation=situation)
+    ramen, stats = cart_composer.search(["컵라면"], ["우유"], False, situation=situation)
     assert "ramen" in {p["id"] for p in ramen} and stats["situation_excluded"] == 0
-    candy, _ = cart_builder.search(["사탕"], ["우유"], False, situation=situation)
+    candy, _ = cart_composer.search(["사탕"], ["우유"], False, situation=situation)
     assert "candy" in {p["id"] for p in candy} and "blocked" not in {p["id"] for p in candy}
 
 

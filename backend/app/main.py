@@ -10,7 +10,7 @@ from fastapi import FastAPI, HTTPException  # noqa: E402
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from pydantic import BaseModel, Field  # noqa: E402
 
-from . import agent, cart_builder, db, intent, profiles, recommender  # noqa: E402
+from . import agent, cart_composer, db, intent, profiles, recommender  # noqa: E402
 from .allergens import ALLERGEN_NAMES  # noqa: E402
 from .extractor import NO_LABEL_REVIEWED, extract  # noqa: E402
 from .rule_engine import combine_profiles, judge  # noqa: E402
@@ -251,10 +251,10 @@ def recommendations(body: RecommendationBody):
     if body.reference_product_id is not None and db.get_product(body.reference_product_id) is None:
         raise HTTPException(404, "기준 상품을 찾을 수 없습니다")
     combined = combine_profiles([m for m in members if m["id"] in body.member_ids])
-    candidates, stats = cart_builder.search(body.keywords, combined["avoid"], combined["strict"])
+    candidates, stats = cart_composer.search(body.keywords, combined["avoid"], combined["strict"])
     ranked = recommender.personalize(candidates, db.list_products(), db.list_interactions(), body.user_id,
                                      body.mode, body.reference_product_id, body.exclude_seen)
-    items, notes = cart_builder.build(ranked, body.count, body.budget)
-    items, validation_notes = cart_builder.revalidate(items, combined["avoid"], combined["strict"])
+    items, notes = cart_composer.build(ranked, body.count, body.budget)
+    items, validation_notes = cart_composer.revalidate(items, combined["avoid"], combined["strict"])
     return {"items": items, "mode": body.mode, "profiles": combined["profiles"], "avoid": combined["avoid"],
             "stats": stats, "notes": notes + validation_notes}

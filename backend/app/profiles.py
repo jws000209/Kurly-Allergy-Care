@@ -112,6 +112,15 @@ def auto_aliases(name: str, relation: str = "", order: str = "") -> list[str]:
     """이름·관계·순서로 부르는 이름을 만든다. (사용자 별칭은 따로 더한다)"""
     words: list[str] = [name.strip()]
     words += [t for t in re.split(r"\s+", name.strip()) if t]
+    # Limited Korean full-name inference; unusual/foreign names use explicit aliases.
+    full = name.strip()
+    if re.fullmatch(r"[가-힣]{3,4}", full):
+        compound = {"남궁", "황보", "제갈", "선우", "독고", "서문", "사공", "동방"}
+        common = set("김이박최정강조윤장임한오서신권황안송전홍유고문양손배백허남심노하곽성차주우구민진지엄채원천방공현함변염여추도소석선설마길연위표명기반왕금옥육인맹제모탁국어은편용")
+        given = full[2:] if full[:2] in compound else full[1:] if full[0] in common else ''
+        reserved = set(GENERIC_PERSON_WORDS) | set(RELATIONS) | set(ORDERS)
+        if len(given) >= 2 and given not in reserved:
+            words.append(given)
     words += RELATION_WORDS.get(relation, [])
     if order in ORDER_WORDS:
         words += ORDER_WORDS[order]["any"]
@@ -170,6 +179,10 @@ def resolve(mentions: list[str], members: list[dict]) -> dict:
             continue
         by_name = [m for m in members if nospace(m["name"]) in keys]
         if len(by_name) == 1:
+            conflicts = [m for m in members if m['id'] != by_name[0]['id'] and set(keys) & {nospace(a) for a in member_aliases(m)}]
+            if conflicts:
+                result['ambiguous'].append((mention, by_name + conflicts))
+                continue
             result["matched"].append((mention, by_name[0], "name"))
             continue
         hits = [m for m in members if set(keys) & {nospace(a) for a in member_aliases(m)}]

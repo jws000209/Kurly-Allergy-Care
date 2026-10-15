@@ -1,7 +1,7 @@
 """원재료명 정제: 직접 판독 결과 우선, 나머지는 OCR 잡음 제거 + 오탈자 교정. 추천 확인용 데이터.
 
 입력: kurly_products_v2_material_facility.csv (원재료명 = 끝에서 두 번째 열, 헤더가 깨져 위치로 읽는다)
-직접 판독: 알레르기판독_파트1/work/vision_part1.jsonl, 알레르기 파트 모으기/vision_part2.json, vision_part4.jsonl (파트 3 없음)
+직접 판독: 알레르기판독_파트1/work/vision_part1.jsonl, 알레르기 파트 모으기/vision_part2.json, vision_part4.jsonl, vision_rest_4370.jsonl (파트 3 없음)
 출력 (마켓컬리 데이터/):
   kurly_products_v2_material_facility_clean.csv  원재료명_정제·원재료명_출처·원재료명_삭제사유 열 추가
   원재료명_정제_로그.csv                           바뀐 항목 전체 (검토용)
@@ -39,6 +39,7 @@ VISION = [
     ROOT / "마켓컬리 데이터" / "알레르기판독_파트1" / "work" / "vision_part1.jsonl",
     DATA / "알레르기 파트 모으기" / "vision_part2.json",  # 파트 2 (JSON 배열)
     DATA / "알레르기 파트 모으기" / "vision_part4.jsonl",
+    DATA / "알레르기 파트 모으기" / "vision_rest_4370.jsonl",  # 나머지 4,370개 기준 판독 (진행 중, 이미지 592장)
 ]
 
 # 구절 단위 잡음 (하나라도 들어 있으면 그 구절은 원재료가 아니다)

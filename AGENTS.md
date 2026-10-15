@@ -23,7 +23,7 @@
 ## 구현·검증
 
 - 명령은 `backend`에서 `.venv/Scripts/python.exe`, 루트에서는 `backend/.venv/Scripts/python.exe`를 사용한다.
-- 추천의 중심은 `backend/app/recommender.py`, 연결 지점은 `cart_builder.py`, `agent.py`, `main.py`다.
+- 추천의 중심은 `backend/app/recommender.py`, 연결 지점은 `cart_composer.py`, `agent.py`, `main.py`다.
 - DB 변경은 기존 계정·프로필·행동 이력을 보존한다. 같은 행동 재시도로 선호 점수를 누적하지 않는다.
 - 테스트는 conftest의 임시 DB·시드·최소 수량 파일·대화 상태 격리를 유지한다. 모듈 import 이후 환경변수만 바꿔 실사용 DB를 테스트하지 않는다.
 - 알레르기 문맥은 allergen_context.py의 구간 분류를 추출기와 RAG에서 공유한다. friendly 답변 옵션은 판정·경고·상품 선택을 바꾸지 않는다.

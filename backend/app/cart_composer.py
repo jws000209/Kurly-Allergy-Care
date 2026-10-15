@@ -1,4 +1,4 @@
-"""Candidate Search/Ranker + Cart Builder + Cart Revalidation.
+"""Candidate Search/Ranker + Cart Composer + Cart Revalidation.
 
 여기서 다루는 후보는 모두 Rule Engine을 PASS한 상품이다.
 조건이 안 맞아도 알레르기 조건은 완화하지 않고, 부족하다는 사실만 돌려준다.
@@ -139,8 +139,8 @@ def _score(product: dict, terms: list[str]) -> int:
 STRONG_MATCH = 2  # 상품명이나 단일 소분류가 맞는 경우
 
 
-def _popularity(item: dict) -> tuple:
-    """같은 관련도 안에서의 순서: 1순위 후기 수(많은 순), 2순위 판매량 순위(높은 순). 가격은 쓰지 않는다."""
+def _review_rank_order(item: dict) -> tuple:
+    """후기 수 내림차순 → 판매량 순위 오름차순. 별도 인기 점수나 판매량 계산은 하지 않는다."""
     reviews = item.get("review_count")
     rank = item.get("sales_rank")
     return (-(reviews if reviews is not None else -1), rank if rank is not None else 10**6)
@@ -168,7 +168,7 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
     """요청에 맞는 상품을 판정 제공자의 로컬 게이트로 걸러 후보를 돌려준다.
 
     순서: 관련도(요청 낱말 일치) → 상황 우선 낱말 → 후기 수 → 판매량 순위. 가격은 순서에 쓰지 않는다
-    ('더 저렴하게'처럼 cheap_first일 때만 가격순). 예산은 cart_builder.build가 따로 맞춘다.
+    ('더 저렴하게'처럼 cheap_first일 때만 가격순). 예산은 cart_composer.build가 따로 맞춘다.
     situation(소풍 등)의 감점·우선 낱말은 같은 관련도 안에서 순위에 반영하며 후보를 삭제하지 않는다.
     이것은 취향 조건일 뿐이고, 알레르기 판정(judge)은 상황과 무관하게 똑같이 한다.
     """
@@ -202,7 +202,7 @@ def search(terms: list[str], avoid: list[str], strict: bool, exclude_ids: set[st
     else:
         # 바로 담을 수 있는 상품(옵션 없음·실제 컬리 상품)을 같은 조건이면 먼저 둔다
         ranked.sort(key=lambda pair: (-pair[0], pair[1]["situation_disfavored"], not pair[1]["preferred"], pair[1]["needs_option"],
-                                      pair[1]["source"] == "mock", *_popularity(pair[1])))
+                                      pair[1]["source"] == "mock", *_review_rank_order(pair[1])))
     items = [item for _, item in ranked]
     if user_id is not None and not cheap_first:
         items = recommender.personalize(items, products, db.list_interactions(), user_id)
@@ -277,7 +277,7 @@ def fits(cart: list[dict], candidate: dict, budget) -> bool:
 
 
 def _ordered(candidates: list[dict]) -> list[dict]:
-    """추천 순서: 요청에 더 잘 맞는 점수대부터, 같은 점수대 안에서는 소분류를 돌아가며 (원래 후보 순서 = 인기순 유지)."""
+    """관련도 점수대 안에서 소분류를 순회하며 전달받은 후보 정렬 순서를 유지한다."""
     order: list[dict] = []
     for score in sorted({item.get("score", 0) for item in candidates}, reverse=True):
         tier = [item for item in candidates if item.get("score", 0) == score]
@@ -292,7 +292,7 @@ def _ordered(candidates: list[dict]) -> list[dict]:
 
 
 def _pick_within(order: list[dict], n: int, lo: float, hi: float) -> list[dict] | None:
-    """순서(관련도·인기)를 앞에서부터 우선하며 n개를 고르되, 합계가 [lo, hi] 안에 드는 조합을 찾는다.
+    """전달받은 후보 순서를 우선하며 n개를 고르되, 합계가 [lo, hi] 안에 드는 조합을 찾는다.
 
     앞 후보를 고른 뒤 나머지를 못 채우면 되돌아가서 다른 조합을 본다 (가지치기: 남은 자리의 가장 싼/비싼 합으로
     들어갈 수 없으면 건너뜀). 탐색 노드 수에 상한을 두어 최악의 경우에도 응답이 멈추지 않게 한다.
@@ -342,7 +342,7 @@ def _pick_within(order: list[dict], n: int, lo: float, hi: float) -> list[dict] 
 
 
 def build(candidates: list[dict], count: int | None, budget=None) -> tuple[list[dict], list[str]]:
-    """개수·예산 조건을 지키는 조합을 만든다. 순서(관련도 → 인기)를 최대한 지키고, 못 채우면 가능한 만큼 담고 이유를 알린다."""
+    """후보 점수·순서를 우선해 개수·예산 조합을 만들고, 부족하면 가능한 만큼 담고 안내한다."""
     count = count or DEFAULT_COUNT
     notes: list[str] = []
     order = _ordered(candidates)
