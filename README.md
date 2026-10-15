@@ -83,7 +83,7 @@ Set-Location backend
 .venv/Scripts/python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-기존 `.env`가 있으면 복사 단계를 건너뜁니다. `backend/app/.openai_api_key`에 API 키를 저장하고 `LLM_MODEL=openai:gpt-6-luna`를 설정합니다. 키가 없으면 의도 해석은 규칙 파서를 사용하지만, 회피 성분이 있는 상품의 최종 RAG 검토는 UNVERIFIED입니다. `.env.example`로 기존 키 설정을 덮어쓰지 마세요.
+기존 `.env`가 있으면 복사 단계를 건너뜁니다. `backend/app/.openai_api_key`에 본인의 API 키를 저장하고 `LLM_MODEL=openai:gpt-6-luna`를 설정합니다. 키가 없으면 요청 해석·상품 선택은 규칙/알고리즘으로 대체합니다. 현재 기본 `rule` 모드는 GPT 근거 검토를 호출하지 않습니다. 선택적으로 `rag` 모드를 켜면 GPT 검토를 사용할 수 없는 상품은 UNVERIFIED로 처리됩니다. `.env.example`로 기존 키 설정을 덮어쓰지 마세요.
 
 이미 가상환경이 준비된 경우 `backend/run.bat`으로도 실행할 수 있습니다.
 
@@ -210,7 +210,7 @@ Chrome content.js (Shadow DOM 패널, 페이지 읽기, 프로필, 장바구니 
 | `KAC_LIVE_MIN_EA_PATH` | `backend/data/min_ea_live.json`, 최소 수량 보정 |
 | `LLM_MODEL` | 기본 `openai:gpt-6-luna`, GPT만 허용 |
 | `OPENAI_API_KEY` | `app/.openai_api_key`가 없을 때 사용할 OpenAI 키 |
-| `KAC_ALLERGY_PROVIDER` | 기본 `rag`, `rule`은 과거 규칙 비교용 |
+| `KAC_ALLERGY_PROVIDER` | 기본 `rule`로 RAG 연결 중단. `rag`는 개선 후 재연결할 보존 경로 |
 | `KAC_ALLERGEN_DICTIONARY` | 선택: 사전 XLSX 절대 경로. 미지정 시 루트 data/의 v1 사전 하나를 사용 |
 | `KAC_REPLY_STYLE` | 기본 `concise`, 친화적 답변은 `friendly` |
 

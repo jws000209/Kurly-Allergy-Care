@@ -1,5 +1,18 @@
 # 작업 인계
 
+## GitHub 신규 다운로드 재점검 (2026-10-15)
+
+- 원격기본브랜치를명시하지않고 workspace/kurly-allergy-care-download-check-20261015에새로clone했습니다. feat/langgraph-supervisor/1a3a812가정상선택됐습니다. 키/.env/가상환경/실사용DB는포함되지않습니다.
+- 복제본코드전체171 passed in25.85s, 확장content/background문법검사통과. 기존프로젝트의Python의존성환경만빌려썼으며새환경pip설치까지검증한것은아닙니다.
+- 복제본에서키없이임시DB/시험62상품으로서버초기화및health200/ok=true/provider=rule을확인했습니다. 실제전체상품초기적재시간/외부GPT/브라우저담기는이번범위가아닙니다. ColabZIP무결성및키/DB제외확인통과.
+- README의과거기본rag표현과키없는경우설명을현재rule기준으로정정했습니다. 새로받은사람은Python설치/의존성설치와개인OpenAI키설정이필요합니다(GPT사용시). 기존8000서버와중복실행은피해야합니다.
+
+## GitHub 기본 브랜치 변경·원격 main 삭제 (2026-10-15)
+
+- 사용자 승인으로 GitHub 기본 브랜치를 feat/langgraph-supervisor(1a3a812)로 변경했습니다. 열린PR/Actions워크플로/브랜치보호/규칙세트 없음 및 관리자권한 확인 후 수행했습니다.
+- 기존 main의6d18ce999abbe4ed6f50ed26f6ea8a8db73f7a06을 backup/main-before-removal-20261015 브랜치로 보존한 뒤 원격 main을 삭제했습니다. 원격HEAD/백업SHA/작업브랜치SHA를 검증했고 origin/HEAD도 갱신했습니다.
+- 로컬main/별도main-review폴더/현재기능코드는변경하지않았습니다. 이인계기록은로컬문서변경이며추가커밋푸시는하지않았습니다.
+
 ## origin/main 별도 폴더 비교 (2026-10-15)
 
 - origin/main 6d18ce9를 workspace/kurly-allergy-care-main-review에 detached worktree로 받았습니다. 현재8e35378브랜치는유지합니다. merge-tree시뮬레이션은문서3개/agent/cart_composer/intent/ColabZIP 총7곳충돌을확인했습니다. 실제병합없음.
